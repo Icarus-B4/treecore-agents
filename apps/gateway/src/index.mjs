@@ -7,14 +7,17 @@
 //     commands.catalog, session.title, message.react
 //   - REST:        /api/status, /api/sessions, /api/profiles/sessions/sidebar
 //   - prompt.submit -> calls a configurable LLM (OpenAI-compatible) and streams
-//     message.delta events back; also runs a `shell` tool (local command).
+//     message.delta events back; also runs local tools (shell, read_file, write_file).
+//   - Sessions persist to gateway-data/<id>.json (survive gateway restart).
 //
 // Config (env or gateway.env next to this file):
 //   LLM_BASE_URL   default http://localhost:11434/v1   (Ollama)
 //   LLM_API_KEY    default (empty — local models need none)
 //   LLM_MODEL      default llama3.1
+//   LLM_MOCK       default off (set 1 to answer without a real LLM)
 //   PORT           default 8789
 //   WS_PATH        default /api/ws
+//   DATA_DIR       default ./gateway-data
 //
 // This is the START of a local backend, not a full Hermes replacement.
 
@@ -39,14 +42,28 @@ const LLM_MODEL = process.env.LLM_MODEL || 'llama3.1'
 const LLM_MOCK = process.env.LLM_MOCK === '1' || process.env.LLM_MOCK === 'true'
 const PORT = Number(process.env.PORT || 8789)
 const WS_PATH = process.env.WS_PATH || '/api/ws'
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'gateway-data')
 
-// In-memory session store (no persistence — local only).
+fs.mkdirSync(DATA_DIR, { recursive: true })
+
+// ---- session store (persisted to disk) ----
 const sessions = new Map()
-function ensureSession(id) {
-  if (!sessions.has(id)) {
-    sessions.set(id, { id, title: 'New session', messages: [], running: false })
+function loadSession(id) {
+  const file = path.join(DATA_DIR, `${id}.json`)
+  if (fs.existsSync(file)) {
+    try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch {}
   }
-  return sessions.get(id)
+  return null
+}
+function persistSession(s) {
+  const file = path.join(DATA_DIR, `${s.id}.json`)
+  fs.writeFileSync(file, JSON.stringify(s, null, 2))
+}
+function ensureSession(id) {
+  if (sessions.has(id)) return sessions.get(id)
+  const loaded = loadSession(id) || { id, title: 'New session', messages: [], running: false }
+  sessions.set(id, loaded)
+  return loaded
 }
 
 // ---- LLM bridge (OpenAI-compatible /v1/chat/completions streaming) ----
@@ -93,7 +110,7 @@ async function* streamLlm(messages) {
   }
 }
 
-// ---- local shell tool ----
+// ---- local tools ----
 import { exec } from 'node:child_process'
 function runShell(cmd, cwd = process.cwd()) {
   return new Promise((resolve) => {
@@ -102,11 +119,29 @@ function runShell(cmd, cwd = process.cwd()) {
     })
   })
 }
+function readFile(p) {
+  try {
+    return { ok: true, content: fs.readFileSync(p, 'utf8') }
+  } catch (e) {
+    return { ok: false, error: e.message }
+  }
+}
+function writeFile(p, content) {
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true })
+    fs.writeFileSync(p, content)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e.message }
+  }
+}
 
 // ---- RPC dispatch ----
 const commands = [
   { name: 'help', description: 'List available commands' },
-  { name: 'shell', description: 'Run a local shell command: /shell <cmd>' }
+  { name: 'shell', description: 'Run a local shell command: /shell <cmd>' },
+  { name: 'read', description: 'Read a local file: /read <path>' },
+  { name: 'write', description: 'Write a local file: /write <path> << content' }
 ]
 
 async function dispatch(method, params, ctx) {
@@ -118,6 +153,7 @@ async function dispatch(method, params, ctx) {
     case 'session.title': {
       const s = ensureSession(params.session_id || 'default')
       s.title = params.title || s.title
+      persistSession(s)
       return { ok: true }
     }
     case 'model.options': {
@@ -140,13 +176,28 @@ async function dispatch(method, params, ctx) {
       const text = params.text || ''
       ctx.event('message.start', { session_id: sid, role: 'user', text })
       s.messages.push({ role: 'user', content: text })
-      // slash command: shell
+      // slash commands -> local tools
       let reply = ''
       if (text.startsWith('/shell ')) {
         ctx.event('tool.start', { session_id: sid, name: 'shell', input: text.slice(7) })
         const out = await runShell(text.slice(7))
         ctx.event('tool.complete', { session_id: sid, name: 'shell', output: out })
         reply = out
+      } else if (text.startsWith('/read ')) {
+        const target = text.slice(6).trim()
+        ctx.event('tool.start', { session_id: sid, name: 'read_file', input: target })
+        const r = readFile(target)
+        ctx.event('tool.complete', { session_id: sid, name: 'read_file', output: r.ok ? r.content.slice(0, 4000) : r.error })
+        reply = r.ok ? r.content : `error: ${r.error}`
+      } else if (text.startsWith('/write ')) {
+        const rest = text.slice(7)
+        const sp = rest.indexOf(' ')
+        const target = sp === -1 ? rest : rest.slice(0, sp)
+        const content = sp === -1 ? '' : rest.slice(sp + 1)
+        ctx.event('tool.start', { session_id: sid, name: 'write_file', input: target })
+        const r = writeFile(target, content)
+        ctx.event('tool.complete', { session_id: sid, name: 'write_file', output: r.ok ? 'written' : r.error })
+        reply = r.ok ? `written ${target}` : `error: ${r.error}`
       } else {
         try {
           if (LLM_MOCK) {
@@ -165,6 +216,7 @@ async function dispatch(method, params, ctx) {
       }
       s.messages.push({ role: 'assistant', content: reply })
       s.running = false
+      persistSession(s)
       ctx.event('message.complete', { session_id: sid, text: reply })
       ctx.event('session.info', { id: sid, title: s.title, running: false, message_count: s.messages.length })
       return { ok: true, session_id: sid }
@@ -182,7 +234,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end() }
 
   if (url.pathname === '/api/status') {
-    return res.end(JSON.stringify({ ok: true, auth_required: false, gateway: 'local', version: '0.1.0' }))
+    return res.end(JSON.stringify({ ok: true, auth_required: false, gateway: 'local', version: '0.2.0' }))
   }
   if (url.pathname === '/api/sessions') {
     const list = [...sessions.values()].map(s => ({ id: s.id, title: s.title, message_count: s.messages.length }))
