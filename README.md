@@ -11,13 +11,16 @@ and the reference app renders and re-themes in a real browser.
 
 | | upstream `apps/desktop` | this template |
 |---|---|---|
-| production build | 17.07 s | **2.24 s** |
-| npm packages | 1186 | **129** |
-| largest JS chunk | 18.98 MB (shiki) | **246 kB** |
+| production build | 17.07 s | **1.21 s** |
+| npm packages | 1186 | **129** (+215 dev/test) |
+| npm vulnerabilities | **9** (7 high, 2 moderate) | **0** |
+| largest JS chunk | 18.98 MB (shiki) | **418 kB** |
 | CSS custom properties | 273 | **273** (zero lost) |
-| TS/TSX source files | 1211 | **29** |
+| TS/TSX source files | 1211 | **~110** (73 primitives + supporting) |
 
 The CSS row is the important one: the aesthetic is fully present, the weight is not.
+The vulnerability row is the dividend: the 9 advisories live in the Electron /
+packaging chain (rcedit, boolean, inflight, …) the template does not carry.
 
 ## Layout
 
@@ -85,7 +88,11 @@ merge. Two pieces of plumbing buy that:
    groups its primitives touch, with English defaults, so a missing key is a
    compile error rather than a blank label.
 
-## What was intentionally dropped
+## Status
+
+- **P0 — design system + shell: DONE and verified.** 273/273 tokens, theme runtime, 13 primitives, green build, browser-confirmed re-theme.
+- **P1 — full primitive set: DONE and verified.** All 73 vendored primitives, supporting lib/hooks as optional seams, 59 Vitest tests green, full gallery renders styled.
+- **P2 — installer fork: NOT STARTED.** `bootstrap.rs` has not yet been read closely enough to fork it honestly. See the plan below.
 
 | dropped | why |
 |---|---|
