@@ -1,0 +1,11 @@
+import { Select as SelectPrimitive } from 'radix-ui';
+import * as React from 'react';
+import { type ControlVariantProps } from '@/components/ui/control';
+declare function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>): React.JSX.Element;
+declare function SelectTrigger({ className, children, size, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger> & ControlVariantProps): React.JSX.Element;
+declare function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>): React.JSX.Element;
+declare function SelectContent({ className, children, position, ...props }: React.ComponentProps<typeof SelectPrimitive.Content>): React.JSX.Element;
+declare function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>): React.JSX.Element;
+declare function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>): React.JSX.Element;
+declare function SelectItem({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>): React.JSX.Element;
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue };

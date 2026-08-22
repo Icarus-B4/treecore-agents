@@ -1,0 +1,15 @@
+import { Command as CommandPrimitive } from 'cmdk';
+import * as React from 'react';
+declare function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>): React.JSX.Element;
+interface CommandInputProps extends React.ComponentProps<typeof CommandPrimitive.Input> {
+    /** Inline trailing slot, rendered on the right of the search row. */
+    right?: React.ReactNode;
+}
+declare function CommandInput({ className, right, ...props }: CommandInputProps): React.JSX.Element;
+declare function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>): React.JSX.Element;
+declare function CommandEmpty({ ...props }: React.ComponentProps<typeof CommandPrimitive.Empty>): React.JSX.Element;
+declare function CommandGroup({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Group>): React.JSX.Element;
+declare function CommandSeparator({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Separator>): React.JSX.Element;
+declare function CommandItem({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Item>): React.JSX.Element;
+declare function CommandShortcut({ className, ...props }: React.ComponentProps<'span'>): React.JSX.Element;
+export { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut };
