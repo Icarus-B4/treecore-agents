@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@boilerplate/ui": [
+        "../../packages/ui/dist-types/src/index.d.ts"
+      ],
+      "@boilerplate/ui/*": [
+        "../../packages/ui/dist-types/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "vite.config.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/ui"
+    }
+  ]
+}

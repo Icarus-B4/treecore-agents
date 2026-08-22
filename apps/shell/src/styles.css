@@ -1,0 +1,20 @@
+/*
+ * App stylesheet — pulls in the design system, then declares what Tailwind
+ * must scan.
+ *
+ * The import is a RELATIVE path on purpose. Tailwind v4 resolves `@import` with
+ * its own loader, which does not honour Vite's JS aliases; a bare
+ * `@boilerplate/ui/styles.css` gets prefix-matched against the package alias
+ * and lands at `.../src/index.ts/styles.css` — a nonexistent path nested inside
+ * a FILE. Pointing at the stylesheet directly avoids the whole ambiguity.
+ *
+ * The `@source` lines are equally load-bearing. Tailwind auto-detects content
+ * relative to the stylesheet that owns `@import 'tailwindcss'` — that file lives
+ * in packages/ui, so this app's own components would NOT be scanned and their
+ * utilities would be silently missing from the output. Declaring both roots is
+ * what keeps that from happening.
+ */
+@import '../../../packages/ui/src/styles.css';
+
+@source '../src';
+@source '../../../packages/ui/src';

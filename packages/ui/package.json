@@ -1,0 +1,33 @@
+{
+  "name": "@boilerplate/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Design system: tokens, theme runtime and UI primitives. No app/business dependencies.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css",
+    "./theme": "./src/theme/index.ts",
+    "./lib/utils": "./src/lib/utils.ts",
+    "./components/*": "./src/components/*"
+  },
+  "scripts": {
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "dependencies": {
+    "@tabler/icons-react": "3.44.0",
+    "@tailwindcss/typography": "0.5.20",
+    "@tailwindcss/vite": "4.3.3",
+    "@vscode/codicons": "0.0.45",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "radix-ui": "1.6.7",
+    "tailwind-merge": "3.6.0",
+    "tailwindcss": "4.3.3",
+    "tw-shimmer": "0.4.12"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
