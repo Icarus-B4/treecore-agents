@@ -16,5 +16,12 @@
  */
 @import '../../../packages/ui/src/styles.css';
 
+/* Layout skeleton — mirror the original titlebar.ts constants locally so the
+ * chrome matches pixel-for-pixel. This token is NOT in the design system; it is
+ * a shell-level dimension, here set to the upstream value (34px). */
+:root {
+  --titlebar-height: 34px;
+}
+
 @source '../src';
 @source '../../../packages/ui/src';
