@@ -1,6 +1,6 @@
 {
-  "name": "hermes",
-  "productName": "Hermes",
+  "name": "treecore-agents",
+  "productName": "Treecore Agents",
   "private": true,
   "version": "0.17.0",
   "description": "Native desktop shell for Hermes Agent.",
