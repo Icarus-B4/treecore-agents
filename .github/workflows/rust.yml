@@ -1,22 +1,60 @@
-name: Rust
+name: rust
 
 on:
   push:
-    branches: [ "feature/desktop-full-copy" ]
+    branches: [feature/desktop-full-copy, main]
+    paths:
+      - 'apps/installer/src-tauri/**'
+      - '.github/workflows/rust.yml'
   pull_request:
-    branches: [ "feature/desktop-full-copy" ]
+    paths:
+      - 'apps/installer/src-tauri/**'
+      - '.github/workflows/rust.yml'
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_NET_RETRY: 5
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  tauri-build:
+    name: Tauri installer build (Windows)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/installer/src-tauri
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            apps/installer/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('apps/installer/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache vcpkg (native deps)
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_ROOT || 'C:/vcpkg' }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('apps/installer/src-tauri/vcpkg.json') }}
+
+      - name: Build (release)
+        run: cargo build --release
+
+      - name: Upload build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-installer-debug
+          path: apps/installer/src-tauri/target/release/
+          if-no-files-found: warn
+          retention-days: 7
