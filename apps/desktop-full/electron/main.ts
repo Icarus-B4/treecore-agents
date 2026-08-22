@@ -249,6 +249,11 @@ import { isPackagedInstallPath as isPackagedInstallPathUnderRoots } from './work
 import { readWslWindowsClipboardImage } from './wsl-clipboard-image'
 import { resolvePickerDefaultPath } from './wsl-path-bridge'
 
+// Standalone fork data directory. User wants the bare name `treecore`
+// (not `treecore-agents`) for all on-disk state, so logs/config/sessions land
+// in %LOCALAPPDATA%\treecore.
+const FORK_DATA_DIR = 'treecore'
+
 const USER_DATA_OVERRIDE = process.env.HERMES_DESKTOP_USER_DATA_DIR
 
 if (USER_DATA_OVERRIDE) {
@@ -258,17 +263,20 @@ if (USER_DATA_OVERRIDE) {
 } else if (APP_NAME !== 'Hermes') {
   // Standalone fork (Treecore Agents etc.): keep its data separate from the
   // original Hermes install so config.yaml / logs / sessions never collide.
-  const forkDir = path.join(process.env.LOCALAPPDATA || app.getPath('home'), 'treecore-agents')
+  const forkDir = path.join(process.env.LOCALAPPDATA || app.getPath('home'), FORK_DATA_DIR)
   fs.mkdirSync(forkDir, { recursive: true })
   app.setPath('userData', forkDir)
 }
 
 // Standalone fork: point at the local gateway (apps/gateway) by default instead
 // of the Nous cloud backend, and isolate HERMES_HOME so a co-installed Hermes
-// backend never shares config.yaml / sessions with this fork.
+// backend never shares config.yaml / sessions with this fork. The user may have
+// a system/user HERMES_HOME pointing at the original Hermes install, so we force
+// the fork value (not `||`) — otherwise logs/config would still land in
+// %LOCALAPPDATA%\hermes.
 if (APP_NAME !== 'Hermes') {
   process.env.HERMES_DESKTOP_REMOTE_URL = process.env.HERMES_DESKTOP_REMOTE_URL || 'http://localhost:8790'
-  process.env.HERMES_HOME = process.env.HERMES_HOME || path.join(process.env.LOCALAPPDATA || app.getPath('home'), 'treecore-agents')
+  process.env.HERMES_HOME = path.join(process.env.LOCALAPPDATA || app.getPath('home'), FORK_DATA_DIR)
 }
 
 const DEV_SERVER = process.env.HERMES_DESKTOP_DEV_SERVER
@@ -602,9 +610,9 @@ function pathWithHermesManagedNode(...entries) {
 // ACTIVE_HERMES_ROOT — the canonical mutable Hermes install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
-// For the Treecore Agents fork this points at `treecore-agents` (not
+// For the Treecore Agents fork this points at `treecore` (not
 // `hermes-agent`) so a co-installed Hermes never shares the backend checkout.
-const FORK_BACKEND_DIR = APP_NAME === 'Hermes' ? 'hermes-agent' : 'treecore-agents'
+const FORK_BACKEND_DIR = APP_NAME === 'Hermes' ? 'hermes-agent' : FORK_DATA_DIR
 const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, FORK_BACKEND_DIR)
 // VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_HERMES_ROOT, 'venv')
@@ -4054,7 +4062,7 @@ function resolveHermesBackend(backendArgs) {
   //    is a recoverable state the GUI can drive through.
   return {
     kind: 'bootstrap-needed',
-    label: 'Hermes Agent not installed yet; bootstrap required',
+    label: 'Treecore Agents not installed yet; bootstrap required',
     command: null,
     args: backendArgs,
     bootstrap: true,
@@ -11604,7 +11612,7 @@ async function runDesktopUninstall(mode) {
     return {
       ok: false,
       error: 'agent-missing',
-      message: `Can't run the uninstaller: no Hermes agent venv at ${VENV_ROOT}.`
+      message: `Can't run the uninstaller: no Treecore Agents venv at ${VENV_ROOT}.`
     }
   }
 

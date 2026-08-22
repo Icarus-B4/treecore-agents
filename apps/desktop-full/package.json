@@ -3,8 +3,8 @@
   "productName": "Treecore Agents",
   "private": true,
   "version": "0.17.0",
-  "description": "Native desktop shell for Hermes Agent.",
-  "author": "Nous Research",
+  "description": "Native desktop shell for Treecore Agents — local-first Hermes fork.",
+  "author": "Treecore Agents",
   "type": "module",
   "main": "dist/electron-main.mjs",
   "engines": {
@@ -135,7 +135,6 @@
     "web-haptics": "0.0.6"
   },
   "devDependencies": {
-    "electron": "43.4.1",
     "@electron/rebuild": "4.2.0",
     "@playwright/test": "1.58.2",
     "@testing-library/dom": "10.4.1",
@@ -256,8 +255,8 @@
     },
     "linux": {
       "category": "Development",
-      "maintainer": "Nous Research <support@nousresearch.com>",
-      "synopsis": "Native desktop shell for Hermes Agent.",
+      "maintainer": "Treecore Agents",
+      "synopsis": "Native desktop shell for Treecore Agents.",
       "target": [
         "AppImage",
         "deb",

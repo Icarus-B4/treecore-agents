@@ -780,7 +780,7 @@ export const zhHant = defineLocale({
         'SSH 驗證失敗。請將金鑰載入 ssh-agent（ssh-add），或在 ~/.ssh/config 中設定 IdentityFile——Hermes 以非互動方式執行 ssh。',
       sshErrHostKey: '自上次連線以來主機金鑰已變更。請確認這是預期的，然後執行 ssh-keygen -R <host> 並重新連線。',
       sshErrNotInstalled:
-        '遠端主機上未安裝 Hermes。請在遠端安裝（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或設定 Hermes 路徑。',
+        '遠端主機上未安裝 Treecore Agents。請在遠端安裝或設定 Treecore Agents 路徑。',
       sshErrPlatform: '不支援的遠端平台。Hermes Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
       sshErrTimeout: 'SSH 連線逾時。主機可能無法存取或處於睡眠狀態。',
       sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Hermes。',
@@ -2052,7 +2052,7 @@ export const zhHant = defineLocale({
     applyRemote: '套用並重新連線',
     backToSetup: '返回',
     failedTitle: '安裝失敗',
-    settingUpTitle: '正在設定 Hermes Agent',
+    settingUpTitle: '正在設定 Treecore Agents',
     finishingTitle: '正在收尾',
     failedDesc:
       '某個安裝步驟失敗。在 Windows 上，如果另一個 Hermes CLI 或桌面執行個體正在執行，可能會出現這種情況。請停止正在執行的 Hermes 執行個體後重試。可查看下方的詳細資訊或 desktop 記錄中的完整記錄。',
@@ -2074,7 +2074,7 @@ export const zhHant = defineLocale({
   },
 
   onboarding: {
-    headerTitle: '開始設定 Hermes Agent',
+    headerTitle: '開始設定 Treecore Agents',
     headerDesc: '連線模型提供方即可開始聊天。大多數選項只需一次點擊。',
     preparingInstall: 'Hermes 正在完成安裝。首次執行通常不到一分鐘。',
     starting: '正在啟動 Hermes…',

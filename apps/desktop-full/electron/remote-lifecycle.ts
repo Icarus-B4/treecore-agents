@@ -203,17 +203,16 @@ async function locateHermes(ssh, remoteHermesPath) {
   }
 
   const err: any = new Error(
-    'Hermes is not installed on the remote host (could not find a `hermes` executable). ' +
-      'Install it on the remote with:  curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh  ' +
-      '— or set the Hermes path explicitly in the SSH connection settings.'
+    'Treecore Agents is not installed on the remote host (could not find a `treecore` executable). ' +
+      'Install it on the remote, or set the Treecore Agents path explicitly in the SSH connection settings.'
   )
 
   err.kind = 'hermes-not-found'
   throw err
 }
 
-// Probe the resolved binary's version string (first line of `<hermes> --version`,
-// e.g. "Hermes Agent v0.18.2 ..."), or '' on failure. Surfaces WHICH hermes a
+// Probe the resolved binary's version string (first line of `<treecore> --version`,
+// e.g. "Treecore Agents v0.18.2 ..."), or '' on failure. Surfaces WHICH agent a
 // connection uses, so a stale/unexpected install is visible.
 async function probeHermesVersion(ssh, hermesPath) {
   try {

@@ -805,7 +805,7 @@ export const ja = defineLocale({
       sshErrHostKey:
         '前回の接続以降、ホスト鍵が変更されています。想定どおりか確認し、ssh-keygen -R <host> を実行してから再接続してください。',
       sshErrNotInstalled:
-        'リモートホストに Hermes がインストールされていません。リモートでインストールする（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）か、Hermes パスを設定してください。',
+        'リモートホストに Treecore Agents がインストールされていません。リモートでインストールするか、Treecore Agents パスを設定してください。',
       sshErrPlatform:
         'サポートされていないリモートプラットフォームです。Hermes Desktop の SSH モードは Linux、macOS、Windows のリモートホストに対応しています。',
       sshErrTimeout: 'SSH 接続がタイムアウトしました。ホストが到達不能、またはスリープ中の可能性があります。',
@@ -2119,7 +2119,7 @@ export const ja = defineLocale({
     applyRemote: '適用して再接続',
     backToSetup: '戻る',
     failedTitle: 'インストールに失敗しました',
-    settingUpTitle: 'Hermes Agent を設定中',
+    settingUpTitle: 'Treecore Agents を設定中',
     finishingTitle: '仕上げ中',
     failedDesc:
       'インストール手順のいずれかが失敗しました。Windows では、別の Hermes CLI またはデスクトップインスタンスが実行中の場合に発生することがあります。実行中の Hermes インスタンスをすべて停止してから再試行してください。詳細は以下またはデスクトップログで確認できます。',
@@ -2142,7 +2142,7 @@ export const ja = defineLocale({
   },
 
   onboarding: {
-    headerTitle: 'Hermes Agent のセットアップをしましょう',
+    headerTitle: 'Treecore Agents のセットアップをしましょう',
     headerDesc: 'チャットを始めるにはモデルプロバイダーを接続してください。ほとんどのオプションはワンクリックです。',
     preparingInstall: 'Hermes はインストールを完了中です。初回実行では通常 1 分以内に完了します。',
     starting: 'Hermes を起動中…',

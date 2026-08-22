@@ -1,9 +1,9 @@
 {
-  "name": "hermes-boilerplate",
+  "name": "treecore-agents",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Lightweight standalone boilerplate: design system, layout shell and installer scaffold extracted from the Hermes Agent desktop app.",
+  "description": "Local-first Treecore Agents desktop app — standalone fork of the Hermes Agent desktop shell with its own gateway, data dir and update repo.",
   "license": "MIT",
   "workspaces": [
     "packages/*",
