@@ -255,6 +255,12 @@ if (USER_DATA_OVERRIDE) {
   const resolvedUserData = path.resolve(USER_DATA_OVERRIDE)
   fs.mkdirSync(resolvedUserData, { recursive: true })
   app.setPath('userData', resolvedUserData)
+} else if (APP_NAME !== 'Hermes') {
+  // Standalone fork (Treecore Agents etc.): keep its data separate from the
+  // original Hermes install so config.yaml / logs / sessions never collide.
+  const forkDir = path.join(process.env.LOCALAPPDATA || app.getPath('home'), 'treecore-agents')
+  fs.mkdirSync(forkDir, { recursive: true })
+  app.setPath('userData', forkDir)
 }
 
 const DEV_SERVER = process.env.HERMES_DESKTOP_DEV_SERVER
@@ -561,7 +567,8 @@ function resolveHermesHome() {
   }
 
   if (IS_WINDOWS && process.env.LOCALAPPDATA) {
-    const localappdata = path.join(process.env.LOCALAPPDATA, 'hermes')
+    const homeDir = APP_NAME === 'Hermes' ? 'hermes' : 'treecore-agents'
+    const localappdata = path.join(process.env.LOCALAPPDATA, homeDir)
     const legacy = path.join(app.getPath('home'), '.hermes')
 
     // Migrate transparently to LOCALAPPDATA, but honour an existing legacy
