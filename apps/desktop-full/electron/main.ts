@@ -263,6 +263,14 @@ if (USER_DATA_OVERRIDE) {
   app.setPath('userData', forkDir)
 }
 
+// Standalone fork: point at the local gateway (apps/gateway) by default instead
+// of the Nous cloud backend, and isolate HERMES_HOME so a co-installed Hermes
+// backend never shares config.yaml / sessions with this fork.
+if (APP_NAME !== 'Hermes') {
+  process.env.HERMES_DESKTOP_REMOTE_URL = process.env.HERMES_DESKTOP_REMOTE_URL || 'http://localhost:8790'
+  process.env.HERMES_HOME = process.env.HERMES_HOME || path.join(process.env.LOCALAPPDATA || app.getPath('home'), 'treecore-agents')
+}
+
 const DEV_SERVER = process.env.HERMES_DESKTOP_DEV_SERVER
 const IS_PACKAGED = app.isPackaged || Boolean(process.env.HERMES_DESKTOP_IS_PACKAGED)
 const IS_MAC = process.platform === 'darwin'
@@ -594,7 +602,10 @@ function pathWithHermesManagedNode(...entries) {
 // ACTIVE_HERMES_ROOT — the canonical mutable Hermes install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
-const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, 'hermes-agent')
+// For the Treecore Agents fork this points at `treecore-agents` (not
+// `hermes-agent`) so a co-installed Hermes never shares the backend checkout.
+const FORK_BACKEND_DIR = APP_NAME === 'Hermes' ? 'hermes-agent' : 'treecore-agents'
+const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, FORK_BACKEND_DIR)
 // VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_HERMES_ROOT, 'venv')
 // BOOTSTRAP_COMPLETE_MARKER — written by the first-launch bootstrap runner
@@ -974,12 +985,12 @@ app.setName(APP_NAME)
 // Windows toast notifications silently no-op unless an AppUserModelID is set:
 // `new Notification().show()` returns without error and nothing appears. The
 // AUMID must match the installed Start Menu shortcut's AUMID, which
-// electron-builder derives from the build `appId` (com.nousresearch.hermes) —
-// keep this string in sync with package.json `build.appId`. macOS/Linux don't
-// need this, so gate it on Windows. (Fixes: desktop approval/turn notifications
-// never firing on Windows.)
+// electron-builder derives from the build `appId` (com.treecore.agents for the
+// fork) — keep this string in sync with package.json `build.appId`. macOS/Linux
+// don't need this, so gate it on Windows. (Fixes: desktop approval/turn
+// notifications never firing on Windows.)
 if (IS_WINDOWS) {
-  app.setAppUserModelId('com.nousresearch.hermes')
+  app.setAppUserModelId(APP_NAME === 'Hermes' ? 'com.nousresearch.hermes' : 'com.treecore.agents')
 }
 
 // Seed the native About panel with the live Hermes version. This is refreshed
@@ -989,7 +1000,7 @@ if (IS_WINDOWS) {
 app.setAboutPanelOptions({
   applicationName: APP_NAME,
   applicationVersion: resolveHermesVersion(),
-  copyright: 'Copyright © 2026 Nous Research'
+  copyright: APP_NAME === 'Hermes' ? 'Copyright © 2026 Nous Research' : 'Copyright © 2026 Treecore Agents'
 })
 
 // Custom scheme for streaming local media (video/audio) into the renderer.
@@ -11472,7 +11483,7 @@ function showAboutPanelFresh() {
   app.setAboutPanelOptions({
     applicationName: APP_NAME,
     applicationVersion: resolveHermesVersion(),
-    copyright: 'Copyright © 2026 Nous Research'
+    copyright: APP_NAME === 'Hermes' ? 'Copyright © 2026 Nous Research' : 'Copyright © 2026 Treecore Agents'
   })
   app.showAboutPanel()
 }
