@@ -149,9 +149,15 @@ async function dispatch(method, params, ctx) {
         reply = out
       } else {
         try {
-          for await (const d of streamLlm(s.messages)) {
-            reply += d
-            ctx.event('message.delta', { session_id: sid, delta: d })
+          if (LLM_MOCK) {
+            const last = s.messages.at(-1)?.content || ''
+            reply = `[local-gateway mock] You said: ${last.slice(0, 80)}${last.length > 80 ? '…' : ''}`
+            ctx.event('message.delta', { session_id: sid, delta: reply })
+          } else {
+            for await (const d of streamLlm(s.messages)) {
+              reply += d
+              ctx.event('message.delta', { session_id: sid, delta: d })
+            }
           }
         } catch (e) {
           ctx.event('error', { session_id: sid, message: e.message })
