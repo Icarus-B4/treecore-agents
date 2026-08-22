@@ -36,6 +36,7 @@ if (fs.existsSync(envPath)) {
 const LLM_BASE_URL = process.env.LLM_BASE_URL || 'http://localhost:11434/v1'
 const LLM_API_KEY = process.env.LLM_API_KEY || ''
 const LLM_MODEL = process.env.LLM_MODEL || 'llama3.1'
+const LLM_MOCK = process.env.LLM_MOCK === '1' || process.env.LLM_MOCK === 'true'
 const PORT = Number(process.env.PORT || 8789)
 const WS_PATH = process.env.WS_PATH || '/api/ws'
 
@@ -50,6 +51,12 @@ function ensureSession(id) {
 
 // ---- LLM bridge (OpenAI-compatible /v1/chat/completions streaming) ----
 async function* streamLlm(messages) {
+  if (LLM_MOCK) {
+    const last = messages.at(-1)?.content || ''
+    const reply = `[local-gateway mock] You said: ${last.slice(0, 80)}${last.length > 80 ? '…' : ''}`
+    for (const ch of reply) yield ch
+    return
+  }
   const body = JSON.stringify({ model: LLM_MODEL, messages, stream: true })
   const res = await fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: 'POST',
