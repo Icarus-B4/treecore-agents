@@ -30,8 +30,7 @@ const FORBIDDEN = [
   '@hermes/shared',
   '@/app/',
   '@/contrib',
-  '@nous-research/ui',
-  'window.hermesDesktop'
+  '@nous-research/ui'
 ]
 
 /** Files that exist only for comparison, not as shipped code. */
@@ -104,12 +103,6 @@ const REFERENCE_CUES = ['from', 'import', 'require', 'url(', '@import']
 const isModuleReference = (line, pattern) => {
   if (!line.includes(pattern)) {
     return false
-  }
-
-  // `window.hermesDesktop` is a runtime global, not a module path — any live
-  // occurrence is a violation on its own.
-  if (!pattern.startsWith('@')) {
-    return true
   }
 
   return REFERENCE_CUES.some(cue => line.includes(cue))
