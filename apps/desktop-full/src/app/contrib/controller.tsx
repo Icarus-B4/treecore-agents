@@ -424,18 +424,30 @@ watchSessionPins()
 const syncWorkspaceTitle = () => {
   const selected = $selectedStoredSessionId.get()
   const stored = selected ? $sessions.get().find(s => sessionMatchesStoredId(s, selected)) : null
+  const title = stored ? storedSessionTitle(stored) : 'New session'
+  const headerVeto = $workspaceIsPage.get()
+
+  // Avoid an infinite render loop: registry.register -> invalidate ->
+  // $registryVersion bump -> re-render -> store read -> (if it mutated a
+  // listened store) syncWorkspaceTitle again. Only re-register when the
+  // title-relevant fields actually changed.
+  if (lastWorkspaceTitle === title && lastWorkspaceHeaderVeto === headerVeto) {
+    return
+  }
+  lastWorkspaceTitle = title
+  lastWorkspaceHeaderVeto = headerVeto
 
   registry.register({
     id: 'workspace',
     area: 'panes',
-    title: stored ? storedSessionTitle(stored) : 'New session',
+    title,
     data: {
       // The tab's status dot — the SAME primitive the sidebar row and session
       // tiles render, so the main tab never disagrees with its sidebar row. No
       // dot on a fresh draft (no session yet).
       tabLead: selected ? () => <SessionStatusDot session={stored} storedSessionId={selected} /> : undefined,
       // Pages aren't tab-able: the main zone's bar stands down while one shows.
-      headerVeto: $workspaceIsPage.get(),
+      headerVeto,
       placement: 'main',
       minWidth: '22vw',
       tabDrag: workspaceTabDrag,
@@ -445,6 +457,9 @@ const syncWorkspaceTitle = () => {
     render: renderWorkspacePane
   })
 }
+
+let lastWorkspaceTitle = ''
+let lastWorkspaceHeaderVeto = false
 
 $selectedStoredSessionId.listen(syncWorkspaceTitle)
 $sessions.listen(syncWorkspaceTitle)
