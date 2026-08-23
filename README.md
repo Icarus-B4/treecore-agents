@@ -44,23 +44,6 @@ The gateway URL is `http://localhost:8789`.
   node src/index.mjs
   ```
 
-**Multiple free providers (recommended):** set `PROVIDERS` (JSON array) to
-expose several OpenAI-compatible providers at once — the desktop shows them
-all in its model picker. Keys can reference another env var with a leading `$`
-(resolved at startup). Example `gateway.env`:
-
-```bash
-PROVIDERS=[
-  {"slug":"ollama","name":"Ollama (local)","baseUrl":"http://localhost:11434/v1","models":["llama3.1","qwen2.5"]},
-  {"slug":"openrouter","name":"OpenRouter (free)","baseUrl":"https://openrouter.ai/api/v1","apiKey":"$OR_KEY","models":["mistralai/mistral-7b-instruct:free"]},
-  {"slug":"groq","name":"Groq (free)","baseUrl":"https://api.groq.com/openai/v1","apiKey":"$GROQ_KEY","models":["llama-3.1-8b-instant"]}
-]
-```
-
-Each provider: `{ slug, name, baseUrl, apiKey?, models:[], defaultModel? }`.
-When `PROVIDERS` is unset, the legacy single-LLM env vars (`LLM_BASE_URL` /
-`LLM_API_KEY` / `LLM_MODEL`) are wrapped as one provider named `local`.
-
 ### 2. Start the desktop app
 
 > ⚠️ **Close the original treecore.exe first.** The app uses a single-instance
