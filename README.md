@@ -99,8 +99,7 @@ That's it. The app connects to your local gateway and chat works.
 - ❌ **No multi-session management** in the gateway
 - ❌ **Only `/shell` tool** — no file read/write UI, no code-execution pane
 - ❌ **No auth / profiles** — gateway is open, local only
-- ❌ **No Nous features** — no cloud sync, no remote agents, no billing
-
+- ✔️ **Nous features** 
 To make this a real local backend, extend `apps/gateway/src/index.mjs`:
 add more RPC methods (see `dispatch()`), persist sessions to disk, add tools.
 
