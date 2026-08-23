@@ -160,6 +160,10 @@ function canImportHermesCli(pythonPath: string, opts: { env?: Record<string, str
   }
 }
 
+function canImportTreecoreCli(pythonPath: string, opts: { env?: Record<string, string> } = {}) {
+  return canImportHermesCli(pythonPath, opts)
+}
+
 /**
  * Return true iff `<hermesCommand> --version` exits 0.
  *
@@ -190,6 +194,10 @@ function shouldTrustHermesOverride(hermesOverride?: string) {
   return typeof hermesOverride === 'string' && hermesOverride.trim().length > 0
 }
 
+function shouldTrustTreecoreOverride(treecoreOverride?: string) {
+  return shouldTrustHermesOverride(treecoreOverride)
+}
+
 function verifyHermesCli(hermesCommand: string, opts?: { shell?: boolean }) {
   if (!hermesCommand) {
     return false
@@ -209,13 +217,20 @@ function verifyHermesCli(hermesCommand: string, opts?: { shell?: boolean }) {
   }
 }
 
+function verifyTreecoreCli(treecoreCommand: string, opts?: { shell?: boolean }) {
+  return verifyHermesCli(treecoreCommand, opts)
+}
+
 export {
   canImportHermesCli,
+  canImportTreecoreCli,
   DEFAULT_PROBE_TIMEOUT_MS,
   execProbeSync,
   hermesRuntimeImportProbe,
   PROBE_TIMEOUT_MS,
   resolveProbeTimeoutMs,
   shouldTrustHermesOverride,
-  verifyHermesCli
+  shouldTrustTreecoreOverride,
+  verifyHermesCli,
+  verifyTreecoreCli
 }

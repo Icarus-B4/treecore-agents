@@ -1933,6 +1933,7 @@ function unwrapWindowsVenvTreecoreCommand(command, backendArgs) {
     getVenvSitePackagesEntries,
     buildDesktopBackendEnv,
     treecoreHome: TREECORE_HOME,
+    hermesHome: TREECORE_HOME,
     resolvePath: (...segments) => path.resolve(...segments),
     dirname: p => path.dirname(p),
     basename: p => path.basename(p),

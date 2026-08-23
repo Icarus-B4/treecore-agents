@@ -870,6 +870,14 @@ async function connect(deps) {
   }
 }
 
+async function locateTreecore(ssh, remoteTreecorePath) {
+  return locateHermes(ssh, remoteTreecorePath)
+}
+
+async function probeTreecoreVersion(ssh, treecorePath) {
+  return probeHermesVersion(ssh, treecorePath)
+}
+
 export {
   adoptOwnedServedToken,
   buildSpawnCommand,
@@ -880,6 +888,7 @@ export {
   fingerprintToken,
   isForwardBindCollision,
   locateHermes,
+  locateTreecore,
   LOCKFILE_SCHEMA_VERSION,
   lockfilePath,
   mintToken,
@@ -887,6 +896,7 @@ export {
   ownershipDirectory,
   pidIsOurDashboard,
   probeHermesVersion,
+  probeTreecoreVersion,
   probeRemoteHermesHome,
   probeRemotePlatform,
   PROTOCOL_VERSION,
