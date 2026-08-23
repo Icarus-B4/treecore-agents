@@ -395,6 +395,13 @@ from treecore_cli.dashboard_auth.public_paths import (
 )
 
 
+# Fork-compat alias: the Treecore Agents desktop client sends the session
+# token under ``X-treecore-Session-Token`` (the refactored header prefix),
+# while upstream Hermes bundles still use ``X-Hermes-Session-Token``. Accept
+# both so either client authenticates against this gateway.
+_SESSION_HEADER_NAMES = (_SESSION_HEADER_NAME, "X-treecore-Session-Token")
+
+
 def _has_valid_session_token(request: Request) -> bool:
     """True if the request carries a valid dashboard session token.
 
@@ -403,12 +410,13 @@ def _has_valid_session_token(request: Request) -> bool:
     accept the legacy Bearer path for backward compatibility with older
     dashboard bundles.
     """
-    session_header = request.headers.get(_SESSION_HEADER_NAME, "")
-    if session_header and hmac.compare_digest(
-        session_header.encode(),
-        _SESSION_TOKEN.encode(),
-    ):
-        return True
+    for _header_name in _SESSION_HEADER_NAMES:
+        session_header = request.headers.get(_header_name, "")
+        if session_header and hmac.compare_digest(
+            session_header.encode(),
+            _SESSION_TOKEN.encode(),
+        ):
+            return True
 
     auth = request.headers.get("authorization", "")
     expected = f"Bearer {_SESSION_TOKEN}"
