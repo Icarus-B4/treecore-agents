@@ -6,7 +6,7 @@
  * Two delivery modes, one surface:
  *  - bundled (`src/plugins/<name>/`): the import resolves here via alias;
  *  - runtime-fetched (plugin host, next phase): the loader injects this same
- *    object as `window.__HERMES_PLUGIN_SDK__` and maps the import to it, so a
+ *    object as `window.__TREECORE_PLUGIN_SDK__` and maps the import to it, so a
  *    published plugin builds against the types with the SDK marked external.
  *
  * Capability tiers (WoW-style):
@@ -104,7 +104,7 @@ export const host = {
     const gateway = $gateway.get()
 
     if (!gateway) {
-      throw new Error('Hermes gateway unavailable')
+      throw new Error('treecore gateway unavailable')
     }
 
     return gateway.request<T>(method, params)
@@ -121,6 +121,16 @@ export { COMPOSER_AREAS, type ComposerAttachmentProvider, type ComposerMiddlewar
 // -- ui: the design language --------------------------------------------------
 
 export { PALETTE_AREA, type PaletteContribution } from '@/app/command-palette/contrib'
+export { $accentOverride, setAccentOverride } from '@/themes/accent-override'
+export { useTheme } from '@/themes/context'
+export {
+  contrastRatio,
+  hexToOklch,
+  maxChroma,
+  oklchToHex,
+  oklchToSrgb255,
+  type Oklch
+} from '@/themes/color'
 export { type RouteContribution, ROUTES_AREA, SIDEBAR_NAV_AREA, type SidebarNavContribution } from '@/app/routes'
 /** THE model catalog menu — the same searchable, provider-grouped, family-
  *  collapsing picker the chat composer uses, including the per-row
@@ -197,7 +207,7 @@ export { Textarea } from '@/components/ui/textarea'
 export { Tip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 export type { GatewayEventListener } from '@/contrib/events'
 export type {
-  HermesPlugin,
+  TreecorePlugin,
   PluginContext,
   PluginContribution,
   PluginNativeNotificationInput,
@@ -248,7 +258,7 @@ export { profileColor, profileColorSoft } from '@/lib/profile-color'
 export { queryClient } from '@/lib/query-client'
 
 export const PANES_AREA = 'panes'
-/** Hermes' reasoning levels + their compact labels, so a plugin surfacing a
+/** treecore' reasoning levels + their compact labels, so a plugin surfacing a
  *  thinking depth uses the same scale and spelling as the rest of the app. */
 export {
   DEFAULT_REASONING_EFFORT,
@@ -267,7 +277,7 @@ export { evaluateRuntimeReadiness, type RuntimeReadinessResult } from '@/lib/run
 export { coarseElapsed, fmtDateTime, fmtDayTime, relativeTime } from '@/lib/time'
 export { cn } from '@/lib/utils'
 export { THEMES_AREA } from '@/themes/user-themes'
-export type { RpcEvent, StatusResponse } from '@/types/hermes'
+export type { RpcEvent, StatusResponse } from '@/types/treecore'
 /** Subscribe a component to a `host.state` atom. */
 export { useStore as useValue } from '@nanostores/react'
 /** The app's data-fetching layer. Plugins share the ONE QueryClient mounted at

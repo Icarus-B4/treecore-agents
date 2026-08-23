@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local-first Treecore Agents desktop app — standalone fork of the Hermes Agent desktop shell with its own gateway, data dir and update repo.",
+  "description": "Local-first Treecore Agents desktop app — standalone fork of the treecore Agent desktop shell with its own gateway, data dir and update repo.",
   "license": "MIT",
   "workspaces": [
     "packages/*",
@@ -28,5 +28,8 @@
     "electron": "^43.4.1",
     "typescript": "6.0.3",
     "vite": "8.2.0"
+  },
+  "dependencies": {
+    "@assistant-ui/tap": "^0.9.8"
   }
 }

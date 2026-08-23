@@ -19,6 +19,8 @@ import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 
 import { $backendThemes, $pendingSkinApply } from './backend-sync'
 import { hexToRgb, mix, readableOn } from './color'
+import { $accentOverride } from './accent-override'
+import { retintTheme } from './retint'
 import { BUILTIN_THEME_LIST, DEFAULT_SKIN_NAME, DEFAULT_TYPOGRAPHY, nousTheme } from './presets'
 import type { DesktopTheme, DesktopThemeColors } from './types'
 import { $userThemes, listAllThemes, resolveTheme } from './user-themes'
@@ -26,15 +28,15 @@ import { $userThemes, listAllThemes, resolveTheme } from './user-themes'
 // Legacy global skin (pre per-profile themes). Still the inheritance fallback
 // for any profile without its own assignment, so single-profile users and old
 // installs are unaffected.
-const SKIN_KEY = 'hermes-desktop-theme-v2'
-const MODE_KEY = 'hermes-desktop-mode-v1'
+const SKIN_KEY = 'treecore-desktop-theme-v2'
+const MODE_KEY = 'treecore-desktop-mode-v1'
 // Per-profile skin + light/dark mode assignments: { [profileKey]: value }. A
 // profile inherits the global default until it's given its own appearance.
-const PROFILE_SKINS_KEY = 'hermes-desktop-profile-themes-v1'
-const PROFILE_MODES_KEY = 'hermes-desktop-profile-modes-v1'
+const PROFILE_SKINS_KEY = 'treecore-desktop-profile-themes-v1'
+const PROFILE_MODES_KEY = 'treecore-desktop-profile-modes-v1'
 // Last active profile, recorded so the boot-time paint can pick that profile's
 // theme before the gateway reports which profile actually launched.
-const LAST_PROFILE_KEY = 'hermes-desktop-active-profile-v1'
+const LAST_PROFILE_KEY = 'treecore-desktop-active-profile-v1'
 const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold'])
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -187,8 +189,8 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
   const skinName = theme.name.endsWith(`-${mode}`) ? theme.name.slice(0, -mode.length - 1) : theme.name
 
   root.style.setProperty('color-scheme', rendered)
-  root.dataset.hermesTheme = skinName
-  root.dataset.hermesMode = rendered
+  root.dataset.treecoreTheme = skinName
+  root.dataset.treecoreMode = rendered
   root.classList.toggle('dark', isDark)
 
   // Brand seeds feed every glass + shadcn token via `color-mix()` in styles.css.
@@ -232,7 +234,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
 
   const chromeBg = chromeBackground(c.background, isDark)
 
-  window.hermesDesktop?.setTitleBarTheme?.({
+  window.treecoreDesktop?.setTitleBarTheme?.({
     background: chromeBg,
     foreground: c.foreground
   })
@@ -241,8 +243,8 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
   // they let a brand-new window paint the themed background on its very first
   // frame, before this module has even loaded.
   try {
-    window.localStorage.setItem('hermes-boot-background', chromeBg)
-    window.localStorage.setItem('hermes-boot-color-scheme', rendered)
+    window.localStorage.setItem('treecore-boot-background', chromeBg)
+    window.localStorage.setItem('treecore-boot-color-scheme', rendered)
   } catch {
     // Storage may be unavailable (private mode / quota); the inline script
     // falls back to prefers-color-scheme.
@@ -252,7 +254,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = typo.fontUrl
-    link.dataset.hermesThemeFont = 'true'
+    link.dataset.treecoreThemeFont = 'true'
     document.head.appendChild(link)
     INJECTED_FONT_URLS.add(typo.fontUrl)
   }
@@ -263,7 +265,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
 // theme instead of the OS appearance. An explicit light/dark pick is forced;
 // 'system' stays 'system' so prefers-color-scheme keeps tracking the OS.
 const syncNativeTheme = (pref: ThemeMode, rendered: 'light' | 'dark') =>
-  window.hermesDesktop?.setNativeTheme?.(pref === 'system' ? 'system' : rendered)
+  window.treecoreDesktop?.setNativeTheme?.(pref === 'system' ? 'system' : rendered)
 
 // Boot-time paint to avoid a flash before <ThemeProvider> mounts. Use the last
 // active profile's appearance so a non-default profile relaunch paints its own
@@ -354,13 +356,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const resolvedMode = resolveMode(mode, systemDark)
 
+  // Dev-only accent retint. `null` (always, in production) returns the theme
+  // untouched, and retintTheme is an identity when the seed already matches —
+  // so this is a no-op unless the picker is actively overriding.
+  const accentOverride = useStore($accentOverride)
+
   const activeTheme = useMemo(
-    () => deriveTheme(themeName, resolvedMode),
+    () => (accentOverride === null ? deriveTheme(themeName, resolvedMode) : retintTheme(deriveTheme(themeName, resolvedMode), accentOverride)),
     // deriveTheme resolves its seed through the merged registry, so the theme
     // stores are its reactivity too — an in-place palette edit of the ACTIVE
     // skin (live theme authoring) must repaint, not just a name switch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [themeName, resolvedMode, userThemes, backendThemes, registryVersion]
+    [themeName, resolvedMode, userThemes, backendThemes, registryVersion, accentOverride]
   )
 
   // What actually gets painted (matches the `.dark` class applyTheme toggles).
@@ -387,7 +394,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     modePref.assign(liveProfile(), next)
   }, [])
 
-  // Drain a backend-driven skin switch (Hermes authoring/activating a skin from a
+  // Drain a backend-driven skin switch (treecore authoring/activating a skin from a
   // prompt, or `/skin` on another surface). setTheme persists it per profile, so
   // the choice sticks like any manual pick.
   const pendingSkin = useStore($pendingSkinApply)
