@@ -36,62 +36,13 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+const LLM_BASE_URL = process.env.LLM_BASE_URL || 'http://localhost:11434/v1'
+const LLM_API_KEY = process.env.LLM_API_KEY || ''
+const LLM_MODEL = process.env.LLM_MODEL || 'llama3.1'
 const LLM_MOCK = process.env.LLM_MOCK === '1' || process.env.LLM_MOCK === 'true'
 const PORT = Number(process.env.PORT || 8789)
 const WS_PATH = process.env.WS_PATH || '/api/ws'
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'gateway-data')
-
-/**
- * Provider registry. Two ways to configure:
- *
- *  1. Legacy single-LLM env vars (back-compat):
- *       LLM_BASE_URL, LLM_API_KEY, LLM_MODEL  -> one provider, slug "local"
- *
- *  2. Multi-provider via PROVIDERS (JSON array), e.g. in gateway.env:
- *       PROVIDERS=[
- *         {"slug":"ollama","name":"Ollama (local)","baseUrl":"http://localhost:11434/v1","models":["llama3.1","qwen2.5"]},
- *         {"slug":"openrouter","name":"OpenRouter (free)","baseUrl":"https://openrouter.ai/api/v1","apiKey":"$OR_KEY","models":["mistralai/mistral-7b-instruct:free"]},
- *         {"slug":"groq","name":"Groq (free)","baseUrl":"https://api.groq.com/openai/v1","apiKey":"$GROQ_KEY","models":["llama-3.1-8b-instant"]}
- *       ]
- *
- * Each provider: { slug, name, baseUrl, apiKey?, models:[], defaultModel? }.
- * `apiKey` may reference another env var with a leading `$` (resolved at load).
- * When PROVIDERS is unset/empty, the legacy single LLM is wrapped as "local".
- */
-function resolveEnvRef(value) {
-  if (typeof value === 'string' && value.startsWith('$')) {
-    return process.env[value.slice(1)] || ''
-  }
-  return value
-}
-
-function loadProviders() {
-  const raw = process.env.PROVIDERS
-  if (raw && raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map(p => ({
-          slug: p.slug || 'local',
-          name: p.name || p.slug || 'local',
-          baseUrl: p.baseUrl || 'http://localhost:11434/v1',
-          apiKey: resolveEnvRef(p.apiKey || ''),
-          models: Array.isArray(p.models) && p.models.length ? p.models : [p.defaultModel || 'default'],
-          defaultModel: p.defaultModel || (Array.isArray(p.models) && p.models[0]) || 'default'
-        }))
-      }
-    } catch (e) {
-      console.error('[hermes-local-gateway] PROVIDERS parse failed, falling back to legacy LLM env:', e.message)
-    }
-  }
-  const base = process.env.LLM_BASE_URL || 'http://localhost:11434/v1'
-  const key = process.env.LLM_API_KEY || ''
-  const model = process.env.LLM_MODEL || 'llama3.1'
-  return [{ slug: 'local', name: 'Local (Ollama)', baseUrl: base, apiKey: key, models: [model], defaultModel: model }]
-}
-
-const PROVIDERS = loadProviders()
-const DEFAULT_PROVIDER = PROVIDERS[0]
 
 fs.mkdirSync(DATA_DIR, { recursive: true })
 
@@ -116,21 +67,19 @@ function ensureSession(id) {
 }
 
 // ---- LLM bridge (OpenAI-compatible /v1/chat/completions streaming) ----
-async function* streamLlm(messages, providerSlug = DEFAULT_PROVIDER.slug, model = DEFAULT_PROVIDER.defaultModel) {
-  const provider = PROVIDERS.find(p => p.slug === providerSlug) || DEFAULT_PROVIDER
-  const effectiveModel = model || provider.defaultModel
+async function* streamLlm(messages) {
   if (LLM_MOCK) {
     const last = messages.at(-1)?.content || ''
     const reply = `[local-gateway mock] You said: ${last.slice(0, 80)}${last.length > 80 ? '…' : ''}`
     for (const ch of reply) yield ch
     return
   }
-  const body = JSON.stringify({ model: effectiveModel, messages, stream: true })
-  const res = await fetch(`${provider.baseUrl}/chat/completions`, {
+  const body = JSON.stringify({ model: LLM_MODEL, messages, stream: true })
+  const res = await fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(provider.apiKey ? { Authorization: `Bearer ${provider.apiKey}` } : {})
+      ...(LLM_API_KEY ? { Authorization: `Bearer ${LLM_API_KEY}` } : {})
     },
     body
   })
@@ -208,18 +157,7 @@ async function dispatch(method, params, ctx) {
       return { ok: true }
     }
     case 'model.options': {
-      const providers = PROVIDERS.map(p => ({
-        slug: p.slug,
-        name: p.name,
-        models: p.models,
-        authenticated: p.apiKey ? true : false,
-        is_user_defined: true
-      }))
-      return {
-        providers,
-        provider: DEFAULT_PROVIDER.slug,
-        model: DEFAULT_PROVIDER.defaultModel
-      }
+      return { models: [{ id: LLM_MODEL, name: LLM_MODEL, provider: 'local' }], default: LLM_MODEL }
     }
     case 'commands.catalog': {
       return { commands }
@@ -228,7 +166,7 @@ async function dispatch(method, params, ctx) {
       return { ok: true }
     case 'llm.oneshot': {
       const out = []
-      for await (const d of streamLlm([{ role: 'user', content: params.text || '' }], params.provider, params.model)) out.push(d)
+      for await (const d of streamLlm([{ role: 'user', content: params.text || '' }])) out.push(d)
       return { text: out.join('') }
     }
     case 'prompt.submit': {
@@ -267,7 +205,7 @@ async function dispatch(method, params, ctx) {
             reply = `[local-gateway mock] You said: ${last.slice(0, 80)}${last.length > 80 ? '…' : ''}`
             ctx.event('message.delta', { session_id: sid, delta: reply })
           } else {
-            for await (const d of streamLlm(s.messages, params.provider, params.model)) {
+            for await (const d of streamLlm(s.messages)) {
               reply += d
               ctx.event('message.delta', { session_id: sid, delta: d })
             }
@@ -333,5 +271,5 @@ wss.on('connection', (ws) => {
 })
 
 server.listen(PORT, () => {
-  console.log(`[hermes-local-gateway] listening on http://localhost:${PORT} (ws ${WS_PATH}), providers=[${PROVIDERS.map(p => `${p.slug}:${p.defaultModel}`).join(', ')}]`)
+  console.log(`[hermes-local-gateway] listening on http://localhost:${PORT} (ws ${WS_PATH}), LLM=${LLM_MODEL} @ ${LLM_BASE_URL}`)
 })

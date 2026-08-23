@@ -3,7 +3,13 @@ import fs from 'node:fs'
 // `hermes serve` announces HERMES_BACKEND_READY; the legacy `hermes dashboard`
 // backend announces HERMES_DASHBOARD_READY. Accept either so the desktop spawn
 // works against both the headless backend and old/dashboard runtimes.
-const _READY_RE = /^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
+//
+// The Treecore Agents fork renames the sentinel to TREECORE_(BACKEND|DASHBOARD)
+// _READY (its `serve`/`dashboard` backends announce under the treecore_ vendor
+// prefix), so the upstream-only regex never matched and the desktop timed out
+// at the `backend.port` step (86%) even though the backend was already up.
+// Accept both vendor prefixes.
+const _READY_RE = /^(?:HERMES|TREECORE)_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
 
 // The announcement clock starts the instant the backend process is spawned —
 // before uvicorn binds its socket. On a cold install the child must first

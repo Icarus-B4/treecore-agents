@@ -131,7 +131,7 @@ test('buildPosixCleanupScript waits for the PID, runs the uninstall module, remo
     agentRoot: '/home/x/.hermes/hermes-agent',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'gui'],
     appPath: '/opt/hermes/linux-unpacked',
-    hermesHome: '/home/x/.hermes'
+    treecoreHome: '/home/x/.hermes'
   })
 
   assert.match(script, /^#!\/bin\/bash/)
@@ -152,7 +152,7 @@ test('buildPosixCleanupScript exports PYTHONPATH when pythonPath is set (lite/fu
     agentRoot: '/home/x/.hermes/hermes-agent',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'full'],
     appPath: null,
-    hermesHome: '/home/x/.hermes'
+    treecoreHome: '/home/x/.hermes'
   })
 
   // System python + source on PYTHONPATH so import hermes_cli works while the
@@ -169,7 +169,7 @@ test('buildPosixCleanupScript omits PYTHONPATH when pythonPath is null (gui)', (
     agentRoot: '/a',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'gui'],
     appPath: null,
-    hermesHome: '/h'
+    treecoreHome: '/h'
   })
 
   assert.doesNotMatch(script, /export PYTHONPATH/)
@@ -183,7 +183,7 @@ test('buildPosixCleanupScript omits the bundle rm when appPath is null', () => {
     agentRoot: '/a',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'lite'],
     appPath: null,
-    hermesHome: '/h'
+    treecoreHome: '/h'
   })
 
   assert.doesNotMatch(script, /rm -rf '\//)
@@ -199,7 +199,7 @@ test('buildPosixCleanupScript single-quote-escapes paths with apostrophes', () =
     agentRoot: '/a',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'gui'],
     appPath: null,
-    hermesHome: '/h'
+    treecoreHome: '/h'
   })
 
   // The apostrophe is closed-escaped-reopened so the shell sees the literal.
@@ -216,7 +216,7 @@ test('buildWindowsCleanupScript waits (bounded) for PID, runs uninstall, rmdir b
     agentRoot: 'C:\\hermes',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'full'],
     appPath: 'C:\\Users\\x\\AppData\\Local\\Programs\\Hermes',
-    hermesHome: 'C:\\Users\\x\\AppData\\Local\\hermes'
+    treecoreHome: 'C:\\Users\\x\\AppData\\Local\\hermes'
   })
 
   assert.match(script, /@echo off/)
@@ -243,7 +243,7 @@ test('buildWindowsCleanupScript omits PYTHONPATH + rmdir when not needed (gui, n
     agentRoot: 'C:\\h',
     uninstallArgs: ['-m', 'hermes_cli.uninstall', '--mode', 'gui'],
     appPath: null,
-    hermesHome: 'C:\\h'
+    treecoreHome: 'C:\\h'
   })
 
   assert.doesNotMatch(script, /rmdir/)

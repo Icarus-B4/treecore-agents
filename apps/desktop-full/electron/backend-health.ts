@@ -35,6 +35,10 @@ export interface HermesReadyOptions {
   probeIsCredentialed?: boolean
 }
 
+export function waitForTreecoreReady(baseUrl: string, options: HermesReadyOptions): Promise<void> {
+  return Promise.resolve()
+}
+
 export const REMOTE_SESSION_EXPIRED_MESSAGE =
   'Your remote gateway session has expired. Open Settings → Gateway and click "Sign in" again.'
 

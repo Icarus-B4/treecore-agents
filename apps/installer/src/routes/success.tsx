@@ -48,14 +48,14 @@ export default function Success() {
           }
         >
           <span>
-            <span>Hermes is ready</span>
+            <span>3Core Agent is ready</span>
           </span>
-          <span aria-hidden="true">Hermes is ready</span>
+          <span aria-hidden="true">3Core Agent is ready</span>
         </p>
 
         <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
           You can launch from here, or any time from your terminal with{' '}
-          <code className="font-mono text-sm text-foreground/80">hermes desktop</code>.
+          <code className="font-mono text-sm text-foreground/80">treecore desktop</code>.
         </p>
       </div>
 

@@ -169,15 +169,17 @@ export interface ResolveVenvHermesCommandDeps {
   isCommandScript: (command: string) => boolean
   fileExists: (filePath: string) => boolean
   directoryExists: (filePath: string) => boolean
-  canImportHermesCli: (python: string, opts?: { env?: Record<string, string> }) => boolean
+  canImportTreecoreCli: (python: string, opts?: { env?: Record<string, string> }) => boolean
   getVenvPython: (venvRoot: string) => string
   getVenvSitePackagesEntries: (venvRoot: string) => string[]
   buildDesktopBackendEnv: (opts: {
     hermesHome: string
+    treecoreHome: string
     pythonPathEntries: string[]
     venvRoot: string
   }) => Record<string, string>
   hermesHome: string
+  treecoreHome: string
   resolvePath: (...segments: string[]) => string
   dirname: (p: string) => string
   basename: (p: string) => string
@@ -203,7 +205,7 @@ export interface ResolveVenvHermesCommandDeps {
  * python doesn't exist, or the import probe fails. Otherwise returns the
  * resolved backend descriptor.
  */
-export function resolveVenvHermesCommand(
+export function resolveVenvTreecoreCommand(
   command: string,
   backendArgs: string[],
   deps: ResolveVenvHermesCommandDeps
@@ -222,7 +224,7 @@ export function resolveVenvHermesCommand(
     isCommandScript,
     fileExists,
     directoryExists,
-    canImportHermesCli,
+    canImportTreecoreCli,
     getVenvPython,
     getVenvSitePackagesEntries,
     buildDesktopBackendEnv,
@@ -259,7 +261,7 @@ export function resolveVenvHermesCommand(
   const root = dirname(venvRoot)
 
   if (
-    !canImportHermesCli(python, {
+    !canImportTreecoreCli(python, {
       env: {
         PYTHONPATH: [...(directoryExists(root) ? [root] : []), process.env.PYTHONPATH]
           .filter((entry): entry is string => Boolean(entry))
@@ -281,6 +283,7 @@ export function resolveVenvHermesCommand(
     bootstrap: false,
     env: buildDesktopBackendEnv({
       hermesHome,
+      treecoreHome: hermesHome,
       pythonPathEntries: [...(directoryExists(root) ? [root] : []), ...getVenvSitePackagesEntries(venvRoot)],
       venvRoot
     }),

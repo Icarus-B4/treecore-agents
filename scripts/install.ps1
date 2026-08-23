@@ -1,5 +1,5 @@
 # ============================================================================
-# Hermes Agent Installer for Windows
+# Treecore Agent Installer for Windows
 # ============================================================================
 # Installation script for Windows (PowerShell).
 # Uses uv for fast Python provisioning and package management.
@@ -30,7 +30,7 @@ param(
     [switch]$ForceCommit,
     [string]$Tag = "",
     [string]$HermesHome = $(if ($env:TREECORE_HOME) { $env:TREECORE_HOME } else { "$env:LOCALAPPDATA\treecore" }),
-    [string]$InstallDir = $(if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore" } else { "$env:LOCALAPPDATA\treecore\treecore" }),
+    [string]$InstallDir = $(if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore" } else { "$env:LOCALAPPDATA\treecore\" }),
 
     # --- Stage protocol (additive; default invocation behaves as before) ----
     # See the "Stage protocol" section near the bottom of the file for the

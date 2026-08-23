@@ -88,6 +88,13 @@ function hermesManagedNodePathEntries(
   return platform === 'win32' ? [root, bin] : [bin, root]
 }
 
+function treecoreManagedNodePathEntries(
+  treecoreHome,
+  opts?: any
+) {
+  return hermesManagedNodePathEntries(treecoreHome, opts)
+}
+
 function buildDesktopBackendPath({
   hermesHome,
   venvRoot,
@@ -116,6 +123,10 @@ function normalizeHermesHomeRoot(hermesHome, { pathModule = pathModuleForPlatfor
   }
 
   return resolved
+}
+
+function normalizeTreecoreHomeRoot(treecoreHome, opts?: any) {
+  return normalizeHermesHomeRoot(treecoreHome, opts)
 }
 
 function buildDesktopBackendEnv({
@@ -156,6 +167,8 @@ export {
   delimiterForPlatform,
   hermesManagedNodePathEntries,
   normalizeHermesHomeRoot,
+  treecoreManagedNodePathEntries,
+  normalizeTreecoreHomeRoot,
   pathEnvKey,
   POSIX_SANE_PATH_ENTRIES
 }
