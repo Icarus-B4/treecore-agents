@@ -9,10 +9,10 @@
  *   import { runBootstrap }from './bootstrap-runner'
  *   const result = await runBootstrap({
  *     installStamp,        // INSTALL_STAMP from main.ts (may be null in dev)
- *     activeRoot,          // ACTIVE_HERMES_ROOT
+ *     activeRoot,          // ACTIVE_TREECORE_ROOT
  *     sourceRepoRoot,      // SOURCE_REPO_ROOT (for dev install.ps1 lookup)
- *     hermesHome,          // HERMES_HOME
- *     logRoot,             // HERMES_HOME/logs
+ *     treecoreHome,          // TREECORE_HOME
+ *     logRoot,             // TREECORE_HOME/logs
  *     emit: ev => {...}    // event sink (sender.send or similar)
  *   })
  *
@@ -90,7 +90,7 @@ function readExistingPinnedCommit(activeRoot: string | null | undefined): string
   }
 
   try {
-    const raw = fs.readFileSync(path.join(activeRoot, '.hermes-bootstrap-complete'), 'utf8')
+    const raw = fs.readFileSync(path.join(activeRoot, '.treecore-bootstrap-complete'), 'utf8')
     const parsed = JSON.parse(raw)
 
     return parsed && isPinnedCommit(parsed.pinnedCommit) ? parsed.pinnedCommit : null
@@ -187,20 +187,20 @@ function resolveLocalInstallScript(sourceRepoRoot) {
   }
 }
 
-function bootstrapCacheDir(hermesHome) {
-  return path.join(hermesHome, 'bootstrap-cache')
+function bootstrapCacheDir(treecoreHome) {
+  return path.join(treecoreHome, 'bootstrap-cache')
 }
 
 // The install.sh / install.ps1 that ships inside the already-installed agent
-// checkout under ~/.hermes/hermes-agent. Used as a last-resort fallback when
+// checkout under ~/.treecore/treecore-agents. Used as a last-resort fallback when
 // the pinned commit can't be fetched from GitHub (e.g. a locally-built desktop
 // app stamped to an unpushed HEAD).
-function installedAgentInstallScript(hermesHome) {
-  if (!hermesHome) {
+function installedAgentInstallScript(treecoreHome) {
+  if (!treecoreHome) {
     return null
   }
 
-  const candidate = path.join(hermesHome, 'hermes-agent', 'scripts', installScriptName())
+  const candidate = path.join(treecoreHome, 'treecore-agents', 'scripts', installScriptName())
 
   try {
     fs.accessSync(candidate, fs.constants.R_OK)
@@ -223,8 +223,8 @@ function hasExistingGitCheckout(activeRoot) {
   }
 }
 
-function cachedScriptPath(hermesHome, commit) {
-  return path.join(bootstrapCacheDir(hermesHome), `install-${commit}.${process.platform === 'win32' ? 'ps1' : 'sh'}`)
+function cachedScriptPath(treecoreHome, commit) {
+  return path.join(bootstrapCacheDir(treecoreHome), `install-${commit}.${process.platform === 'win32' ? 'ps1' : 'sh'}`)
 }
 
 function downloadInstallScript(ref, destPath) {
@@ -234,8 +234,11 @@ function downloadInstallScript(ref, destPath) {
   // placeholder is a real GitHub commit.
   const scriptName = installScriptName()
   // For the Treecore Agents fork, bootstrap from the fork's own repo instead of
-  // NousResearch/hermes-agent, so first-launch setup never pulls the original.
-  const bootstrapRepo = APP_NAME === 'Hermes' ? 'NousResearch/hermes-agent' : 'Icarus-B4/treecore-agents'
+  // NousResearch/treecore-agents, so first-launch setup never pulls the original.
+  // APP_NAME lives in main.ts (not imported here to avoid a cross-module cycle),
+  // so derive the fork flag from the same env source directly.
+  const isTreecoreApp = (process.env.TREECORE_DESKTOP_APP_NAME || 'Treecore Agents') === 'treecore'
+  const bootstrapRepo = isTreecoreApp ? 'NousResearch/treecore-agents' : 'Icarus-B4/treecore-agents'
   const url = `https://raw.githubusercontent.com/${bootstrapRepo}/${ref}/scripts/${scriptName}`
 
   return new Promise((resolve, reject) => {
@@ -320,7 +323,7 @@ function downloadInstallScript(ref, destPath) {
 async function resolveInstallScript({
   installStamp,
   sourceRepoRoot,
-  hermesHome,
+  treecoreHome,
   emit,
   _download = downloadInstallScript
 }) {
@@ -347,7 +350,7 @@ async function resolveInstallScript({
     )
   }
 
-  const cached = cachedScriptPath(hermesHome, installRef.cacheKey)
+  const cached = cachedScriptPath(treecoreHome, installRef.cacheKey)
   const resolvedCommit = installRef.pinned ? installRef.ref : null
 
   try {
@@ -380,7 +383,7 @@ async function resolveInstallScript({
     // write-build-stamp.mjs fromLocalGit). Fall back to the installer that
     // ships inside the already-installed agent checkout so dev/self-builds can
     // still bootstrap instead of dying with a fatal 404.
-    const installed = installedAgentInstallScript(hermesHome)
+    const installed = installedAgentInstallScript(treecoreHome)
 
     if (installed) {
       emit({
@@ -459,7 +462,7 @@ function resolveWindowsPowerShell() {
   return 'powershell.exe'
 }
 
-function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, hermesHome }: any = {}) {
+function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, treecoreHome }: any = {}) {
   return new Promise<any>((resolve, reject) => {
     const ps = process.platform === 'win32' ? resolveWindowsPowerShell() : 'pwsh'
     const fullArgs = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, ...args]
@@ -471,9 +474,9 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, herme
         stdio: ['ignore', 'pipe', 'pipe'],
         env: {
           ...process.env,
-          // Pass HERMES_HOME through so install.ps1 respects the caller's
+          // Pass TREECORE_HOME through so install.ps1 respects the caller's
           // choice rather than re-computing the default.
-          HERMES_HOME: hermesHome || process.env.HERMES_HOME || ''
+          TREECORE_HOME: treecoreHome || process.env.TREECORE_HOME || ''
         }
       })
     )
@@ -563,13 +566,13 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, herme
   })
 }
 
-function spawnBash(scriptPath, args, { emit, stageName, abortSignal, hermesHome }: any = {}) {
+function spawnBash(scriptPath, args, { emit, stageName, abortSignal, treecoreHome }: any = {}) {
   return new Promise<any>((resolve, reject) => {
     const child = spawn('bash', [scriptPath, ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        HERMES_HOME: hermesHome || process.env.HERMES_HOME || ''
+        TREECORE_HOME: treecoreHome || process.env.TREECORE_HOME || ''
       }
     })
 
@@ -679,8 +682,8 @@ function buildPinArgs(installStamp, { pinCommit = true } = {}) {
   return args
 }
 
-function buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit = true }) {
-  const args = ['--dir', activeRoot, '--hermes-home', hermesHome]
+function buildPosixPinArgs({ installStamp, activeRoot, treecoreHome, pinCommit = true }) {
+  const args = ['--dir', activeRoot, '--treecore-home', treecoreHome]
 
   if (installStamp && installStamp.branch) {
     args.push('--branch', installStamp.branch)
@@ -693,17 +696,17 @@ function buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit = t
   return args
 }
 
-async function fetchManifest({ scriptPath, installerKind, emit, hermesHome, activeRoot, installStamp, pinCommit }) {
+async function fetchManifest({ scriptPath, installerKind, emit, treecoreHome, activeRoot, installStamp, pinCommit }) {
   const isPosix = installerKind === 'posix'
 
   const args = isPosix
-    ? ['--manifest', ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit })]
+    ? ['--manifest', ...buildPosixPinArgs({ installStamp, activeRoot, treecoreHome, pinCommit })]
     : ['-Manifest', ...buildPinArgs(installStamp, { pinCommit })]
 
   const result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
     emit,
     stageName: '__manifest__',
-    hermesHome
+    treecoreHome
   })
 
   if (result.code !== 0) {
@@ -760,7 +763,7 @@ async function runStage({
   installerKind,
   stage,
   emit,
-  hermesHome,
+  treecoreHome,
   activeRoot,
   abortSignal,
   installStamp,
@@ -777,7 +780,7 @@ async function runStage({
         stage.name,
         '--non-interactive',
         '--json',
-        ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit })
+        ...buildPosixPinArgs({ installStamp, activeRoot, treecoreHome, pinCommit })
       ]
     : ['-Stage', stage.name, '-NonInteractive', '-Json', ...buildPinArgs(installStamp, { pinCommit })]
 
@@ -785,7 +788,7 @@ async function runStage({
     emit,
     stageName: stage.name,
     abortSignal,
-    hermesHome
+    treecoreHome
   })
 
   const durationMs = Date.now() - startedAt
@@ -864,7 +867,7 @@ async function runBootstrap(opts) {
     installStamp,
     activeRoot,
     sourceRepoRoot,
-    hermesHome,
+    treecoreHome,
     logRoot,
     onEvent,
     abortSignal,
@@ -886,7 +889,7 @@ async function runBootstrap(opts) {
     return { ok: false, cancelled: true }
   }
 
-  const runLog = openRunLog(logRoot || path.join(hermesHome, 'logs'))
+  const runLog = openRunLog(logRoot || path.join(treecoreHome, 'logs'))
 
   // Tee every event to the runLog AND the caller's onEvent. This gives us a
   // forensic trail per bootstrap run AND lets the renderer subscribe live.
@@ -930,7 +933,7 @@ async function runBootstrap(opts) {
     }
 
     // 1. Resolve the platform installer.
-    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit })
+    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, treecoreHome, emit })
     const installerKind = scriptInfo.kind || 'powershell'
 
     // 2. Fetch manifest
@@ -938,7 +941,7 @@ async function runBootstrap(opts) {
       scriptPath: scriptInfo.path,
       installerKind,
       emit,
-      hermesHome,
+      treecoreHome,
       activeRoot,
       installStamp,
       pinCommit
@@ -966,7 +969,7 @@ async function runBootstrap(opts) {
         installerKind,
         stage,
         emit,
-        hermesHome,
+        treecoreHome,
         activeRoot,
         abortSignal,
         installStamp,
