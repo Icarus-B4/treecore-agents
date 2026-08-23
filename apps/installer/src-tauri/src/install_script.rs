@@ -61,6 +61,22 @@ impl ScriptKind {
             Self::Sh => "install.sh",
         }
     }
+
+    /// Script content bundled into the binary at compile time (private-repo
+    /// fallback: no network/GitHub needed). None if the build could not find
+    /// the script at the expected repo path.
+    fn bundled_content(&self) -> Option<&'static str> {
+        match self {
+            Self::Ps1 => Some(include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../../scripts/install.ps1"
+            ))),
+            Self::Sh => Some(include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../../scripts/install.sh"
+            ))),
+        }
+    }
 }
 
 /// Validates a string looks like a git SHA (7+ hex chars). Mirrors
@@ -120,7 +136,27 @@ pub async fn resolve(
         }
     }
 
-    // 2. (Not implemented) bundled fallback.
+    // 2. Bundled fallback (private-repo support). The script content is
+    //    compiled into the binary at build time via include_str! — no network,
+    //    no GitHub raw access needed. Essential when the upstream repo is
+    //    private and raw.githubusercontent.com 404s.
+    if let Some(content) = kind.bundled_content() {
+        let bundled_path = paths::bootstrap_cache_dir().join(format!("bundled-{}", kind.filename()));
+        let bytes = prepare_cached_script_bytes(kind, content.as_bytes());
+        if std::fs::write(&bundled_path, &bytes).is_ok() {
+            emit_log(&format!(
+                "[bootstrap] using bundled {} (private repo fallback) at {}",
+                kind.filename(),
+                bundled_path.display()
+            ));
+            return Ok(ResolvedScript {
+                path: bundled_path,
+                source: ScriptSource::Bundled,
+                commit: pin.commit.clone(),
+                branch: pin.branch.clone(),
+            });
+        }
+    }
 
     // 3. Network. Pin must be a real commit or a branch ref.
     //
