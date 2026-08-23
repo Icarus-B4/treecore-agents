@@ -62,7 +62,7 @@ export const en: Translations = {
   },
 
   boot: {
-    ready: 'Treecore Desktop is ready',
+    ready: '3Core↬Agents Desktop is ready',
     desktopBootFailedWithMessage: message => `Desktop boot failed: ${message}`,
     steps: {
       connectingGateway: 'Connecting live desktop gateway',
@@ -522,7 +522,7 @@ export const en: Translations = {
     fieldLabels: FIELD_LABELS,
     fieldDescriptions: FIELD_DESCRIPTIONS,
     about: {
-      heading: 'Treecore Desktop',
+      heading: 'Treecore Agents Desktop',
       version: value => `Version ${value}`,
       versionUnavailable: 'Version unavailable',
       updates: 'Updates',
