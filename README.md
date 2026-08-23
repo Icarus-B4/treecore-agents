@@ -1,10 +1,10 @@
-# Hermes Boilerplate (Local Edition)
+# treecore Boilerplate (Local Edition)
 
-A **standalone, Nous-free copy** of the Hermes Desktop app. Same UI, same
+A **standalone, Nous-free copy** of the treecore Desktop app. Same UI, same
 features, same layout — but it connects to a **local gateway** you run
 yourself instead of the Nous cloud backend.
 
-> ⚠️ This is NOT a replacement for Hermes. It is a template: the full desktop
+> ⚠️ This is NOT a replacement for treecore. It is a template: the full desktop
 > client (copied 1:1) plus a minimal local gateway that speaks the same
 > JSON-RPC protocol. The gateway is a starting point, not a complete backend.
 
@@ -14,7 +14,7 @@ yourself instead of the Nous cloud backend.
 
 | Path | What |
 |---|---|
-| `apps/desktop-full/` | The complete Hermes Desktop app, copied 1:1 from `hermes-agent-main/apps/desktop`. Renders the real UI. |
+| `apps/desktop-full/` | The complete treecore Desktop app, copied 1:1 from `treecore-agents-main/apps/desktop`. Renders the real UI. |
 | `apps/gateway/` | Minimal local backend: JSON-RPC over WebSocket + REST. Bridges to any OpenAI-compatible LLM. |
 | `packages/ui/` | Extracted design-system (tokens + 73 primitives). |
 | `packages/shared/` | `@hermes/shared` protocol types (copied, no Nous dependency). |
@@ -46,8 +46,8 @@ The gateway URL is `http://localhost:8789`.
 
 ### 2. Start the desktop app
 
-> ⚠️ **Close the original Hermes.exe first.** The app uses a single-instance
-> lock — if the original Hermes is running, your copy will not open a window.
+> ⚠️ **Close the original treecore.exe first.** The app uses a single-instance
+> lock — if the original treecore is running, your copy will not open a window.
 
 ```bash
 cd apps/desktop-full
@@ -67,11 +67,31 @@ That's it. The app connects to your local gateway and chat works.
 
 ## What works today
 
-- ✅ Full Hermes Desktop UI (all 6 regions: title bar, sidebar, center, right pane, terminal, status bar)
+- ✅ Full treecore Desktop UI (all 6 regions: title bar, sidebar, center, right pane, terminal, status bar)
 - ✅ Connects to local gateway over JSON-RPC (WebSocket)
 - ✅ Chat with streaming responses (mock or real LLM)
 - ✅ `/shell <cmd>` command runs a local shell command
 - ✅ Session list + sidebar (in-memory)
+- ✅ **Accent Picker plugin** — live OKLCH color picker in the status bar that
+  re-tints the whole app (Settings ▸ Plugins ▸ "Accent Picker", dev authoring
+  tool, not persisted across reloads)
+- ✅ **Render loop fixed** — the chat surface no longer crashes with
+  "Maximum update depth exceeded" (was caused by a `@assistant-ui/tap@0.9.14`
+  pin; reverted to `0.9.8` to match upstream)
+
+## Known fixes & notes
+
+- **`@assistant-ui/tap` must stay at `0.9.8`.** The fork previously pinned
+  `0.9.14` (explicit dep + root `overrides`), but that version has a
+  `useSyncExternalStore` loop bug that crashes the chat surface on every
+  render ("Maximum update depth exceeded"). Upstream `hermes-agent` ships
+  `0.9.8`; keep it there. Do **not** bump it without verifying the loop stays
+  gone.
+- **Accent Picker** is a bundled plugin (`apps/desktop-full/src/plugins/accent/`)
+  ported from `hermes-agent` issue #91107. It wires `$accentOverride`
+  (`themes/accent-override.ts`) through `retintTheme` (`themes/retint.ts`) in
+  `themes/context.tsx` so the picker live-retints the app. Ships **off**
+  (`defaultEnabled: false`) — enable it in Settings ▸ Plugins.
 
 ## What's NOT done (gateway is a starting point)
 
@@ -90,7 +110,7 @@ add more RPC methods (see `dispatch()`), persist sessions to disk, add tools.
 
 ```
 ┌─────────────────────┐         JSON-RPC 2.0 over WS          ┌─────────────────────┐
-│  Hermes Desktop     │  ───────────────────────────────────▶ │  Local Gateway      │
+│  treecore Desktop     │  ───────────────────────────────────▶ │  Local Gateway      │
 │  (apps/desktop-full)│  ◀─────────────────────────────────── │  (apps/gateway)     │
 │                     │   events: gateway.ready,              │                     │
 │  renderer + electron│   message.start/delta/complete,       │  → bridges to LLM   │
@@ -105,7 +125,7 @@ implements the subset the client needs. Add methods as required.
 
 ## Original source
 
-Copied from `hermes-agent-main` (apps/desktop, packages/shared) — stripped of
+Copied from `treecore-agents-main` (apps/desktop, packages/shared) — stripped of
 all Nous-specific backend connections. The gateway URL is user-configured,
 not hardcoded.
 
