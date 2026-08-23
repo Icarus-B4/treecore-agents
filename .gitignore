@@ -35,3 +35,8 @@ Thumbs.db
 
 # Test / coverage
 coverage/
+
+# Installer / Tauri build artifacts
+apps/installer/src-tauri/treecore-setup.manifest
+apps/installer/src-tauri/target/
+apps/installer/target/
