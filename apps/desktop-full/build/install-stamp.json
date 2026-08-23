@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "commit": "9849ae8c8ffc0cd736e457d295ea20f02ae7c109",
-  "branch": "feature/desktop-full-copy",
-  "builtAt": "2026-08-22T20:10:31.425Z",
+  "commit": "94dc39100ec3eab19275339781b1eddd0b4302b4",
+  "branch": "feature/desktop-full-dev",
+  "builtAt": "2026-08-23T14:29:35.592Z",
   "dirty": true,
   "source": "local"
 }

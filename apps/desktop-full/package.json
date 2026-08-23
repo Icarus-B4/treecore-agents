@@ -255,7 +255,7 @@
     },
     "linux": {
       "category": "Development",
-      "maintainer": "Treecore Agents",
+      "maintainer": "Treecore Agents <icarus.mod56@gmail.com>",
       "synopsis": "Native desktop shell for Treecore Agents.",
       "target": [
         "AppImage",

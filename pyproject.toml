@@ -1,7 +1,7 @@
 
 
 [project]
-name = "treecore-agent"
+name = "treecore-agents"
 version = "0.20.0"
 description = "The self-improving AI agent — creates skills from experience, improves them during use, and runs anywhere"
 readme = "README.md"

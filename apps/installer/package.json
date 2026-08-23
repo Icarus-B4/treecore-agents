@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Hermes Setup \u2014 Tauri installer UI. Design system from @boilerplate/ui.",
+  "description": "Treecore Setup \u2014 Tauri installer UI. Design system from @boilerplate/ui.",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5175",
     "build": "vite build",

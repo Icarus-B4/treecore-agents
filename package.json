@@ -30,6 +30,9 @@
     "vite": "8.2.0"
   },
   "dependencies": {
-    "@assistant-ui/tap": "^0.9.8"
+    "@assistant-ui/tap": "0.9.8"
+  },
+  "overrides": {
+    "@assistant-ui/tap": "0.9.8"
   }
 }
