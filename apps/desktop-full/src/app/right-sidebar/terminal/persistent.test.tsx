@@ -186,7 +186,7 @@ describe('PersistentTerminal rect tracking', () => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
     setVisibility(false)
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).treecoreDesktop
   })
 
   it('settles after rect changes instead of polling forever', () => {

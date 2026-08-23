@@ -16,8 +16,8 @@
  *
  * Removed vs. the original (all Electron/Hermes-specific, all optional-chained
  * in the source so dropping them changes nothing for a web target):
- *   - window.hermesDesktop.setTitleBarTheme()  (native titlebar tint)
- *   - window.hermesDesktop.setNativeTheme()    (Electron nativeTheme pin)
+ *   - window.treecoreDesktop.setTitleBarTheme()  (native titlebar tint)
+ *   - window.treecoreDesktop.setNativeTheme()    (Electron nativeTheme pin)
  *   - localStorage 'hermes-boot-*' keys        (pre-paint script in index.html)
  * `chromeBackground()` is kept and exported — a host app that owns native
  * chrome still needs the value.

@@ -111,7 +111,7 @@ describe('usePetRoam RAF scheduling', () => {
     vi.useRealTimers()
     vi.restoreAllMocks()
     setVisibility(false)
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).treecoreDesktop
   })
 
   it('uses a pause timer, not RAF, while dwelling at idle', () => {

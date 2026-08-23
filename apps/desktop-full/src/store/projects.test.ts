@@ -152,7 +152,7 @@ describe('resolveNewSessionCwd', () => {
     $sessions.set([
       {
         archived: false,
-        cwd: '/Users/me/www/hermes-agent',
+        cwd: '/Users/me/www/treecore-agent',
         ended_at: null,
         id: 'sess-a',
         input_tokens: 0,
@@ -166,7 +166,7 @@ describe('resolveNewSessionCwd', () => {
       } as never
     ])
 
-    expect(resolveNewSessionCwd()).toBe('/Users/me/www/hermes-agent')
+    expect(resolveNewSessionCwd()).toBe('/Users/me/www/treecore-agent')
   })
 
   it('does not re-attach a remembered cwd when the focused session is detached', () => {

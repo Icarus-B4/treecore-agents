@@ -185,7 +185,7 @@ function AutoArchiveSetting() {
   useEffect(() => {
     // Config REST is only reachable through the Electron bridge; skip in
     // non-Electron contexts (tests/storybook) rather than throwing.
-    if (!window.hermesDesktop) {
+    if (!window.treecoreDesktop) {
       return
     }
 
@@ -288,11 +288,11 @@ function DefaultProjectDirSetting() {
 
   useEffect(() => {
     // The bridge is only present when running inside Electron. In a Vitest
-    // / Storybook / non-Electron context `window.hermesDesktop` is
+    // / Storybook / non-Electron context `window.treecoreDesktop` is
     // undefined, so guard the WHOLE call chain rather than chaining
     // `?.settings.getDefaultProjectDir().then(...)` (the latter would
     // short-circuit to `undefined.then(...)` and throw at runtime).
-    const settings = window.hermesDesktop?.settings
+    const settings = window.treecoreDesktop?.settings
 
     if (!settings) {
       return
@@ -316,7 +316,7 @@ function DefaultProjectDirSetting() {
   }, [])
 
   const choose = useCallback(async () => {
-    const settings = window.hermesDesktop?.settings
+    const settings = window.treecoreDesktop?.settings
 
     if (!settings) {
       return
@@ -343,7 +343,7 @@ function DefaultProjectDirSetting() {
   }, [s])
 
   const clear = useCallback(async () => {
-    const settings = window.hermesDesktop?.settings
+    const settings = window.treecoreDesktop?.settings
 
     if (!settings) {
       return

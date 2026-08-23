@@ -134,7 +134,7 @@ describe('GlyphSpinner', () => {
       act(() => vi.advanceTimersByTime(80))
       expect(status.textContent).not.toBe(frozen)
     } finally {
-      delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as unknown as { hermesDesktop?: unknown }).treecoreDesktop
     }
   })
 

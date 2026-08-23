@@ -1,7 +1,7 @@
 /**
  * Pure helpers for choosing a remote URL during passive update checks.
  *
- * A public install can end up with `origin=git@github.com:NousResearch/hermes-agent.git`.
+ * A public install can end up with `origin=git@github.com:Icarus-B4/treecore-agents.git`.
  * If the user's GitHub SSH key is FIDO2/passkey-backed, a background `git fetch
  * origin` triggers an unexplained hardware-touch prompt. For passive checks
  * against the official repo we substitute the public HTTPS `ls-remote` path,
@@ -13,15 +13,15 @@
  */
 
 // For the Treecore Agents fork, passive update checks must target the fork's
-// own repo, never NousResearch/hermes-agent — otherwise "Check for updates"
+// own repo, never NousResearch/treecore-agent — otherwise "Check for updates"
 // would try to pull the original Hermes into a Treecore install.
 const IS_FORK = (process.env.HERMES_DESKTOP_APP_NAME || 'Hermes') !== 'Hermes'
 const OFFICIAL_REPO_HTTPS_URL = IS_FORK
   ? 'https://github.com/Icarus-B4/treecore-agents.git'
-  : 'https://github.com/NousResearch/hermes-agent.git'
+  : 'https://github.com/Icarus-B4/treecore-agents.git'
 const OFFICIAL_REPO_CANONICAL = IS_FORK
   ? 'github.com/icarus-b4/treecore-agents'
-  : 'github.com/nousresearch/hermes-agent'
+  : 'github.com/nousresearch/treecore-agent'
 
 // Normalize common GitHub remote URL forms to `host/owner/repo` (lowercased,
 // no trailing slash, no .git suffix) so SSH and HTTPS forms of the same repo

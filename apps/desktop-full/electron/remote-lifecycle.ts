@@ -33,7 +33,7 @@ const LOCKFILE_SCHEMA_VERSION = 2
 // args, served-token reconciliation). A mismatch forces a clean respawn.
 const PROTOCOL_VERSION = 1
 const READY_RE = /^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
-const REMOTE_LOCK_DIR = '~/.hermes/desktop-ssh'
+const REMOTE_LOCK_DIR = '~/.treecore/desktop-ssh'
 const SUPPORTED_REMOTE_OS = new Set(['Linux', 'Darwin'])
 const DEFAULT_READY_TIMEOUT_MS = 45_000
 const READY_POLL_INTERVAL_MS = 750
@@ -166,8 +166,8 @@ async function locateHermes(ssh, remoteHermesPath) {
 
     const err: any = new Error(
       `The Hermes path you set is not an executable on the remote host: "${remoteHermesPath}". ` +
-        'Check the path (it must be the full path to the `hermes` binary on the remote, e.g. ' +
-        '~/hermes-agent/.venv/bin/hermes), or clear it to auto-detect.'
+        'Check the path (it must be the full path to the `treecore` binary on the remote, e.g. ' +
+        '~/treecore-agent/.venv/bin/hermes), or clear it to auto-detect.'
     )
 
     err.kind = 'hermes-not-found'
@@ -190,7 +190,7 @@ async function locateHermes(ssh, remoteHermesPath) {
   // command locations (scripts/install.sh) — per-user, root/FHS, legacy venv.
   candidates.push('~/.local/bin/hermes')
   candidates.push('/usr/local/bin/hermes')
-  candidates.push('~/.hermes/hermes-agent/venv/bin/hermes')
+  candidates.push('~/.treecore/treecore-agent/venv/bin/hermes')
 
   for (const candidate of candidates) {
     if (!candidate) {
@@ -241,14 +241,14 @@ async function probeRemotePlatform(ssh) {
   return { os: osName, arch }
 }
 
-// The HERMES_HOME the remote dashboard will use (explicit env wins, else
-// ~/.hermes). Recorded in the lockfile so a future reuse can tell it's the same
+// The TREECORE_HOME the remote dashboard will use (explicit env wins, else
+// ~/.treecore). Recorded in the lockfile so a future reuse can tell it's the same
 // state store; best-effort.
 async function probeRemoteHermesHome(ssh) {
   try {
-    const out = (await ssh.exec('echo "${HERMES_HOME:-$HOME/.hermes}"')).trim().split('\n').pop()
+    const out = (await ssh.exec('echo "${TREECORE_HOME:-$HOME/.treecore}"')).trim().split('\n').pop()
 
-    return out || '~/.hermes'
+    return out || '~/.treecore'
   } catch (cause) {
     const error: any = new Error('Could not resolve the remote Hermes home.')
     error.kind = 'transient-transport-error'
@@ -317,7 +317,7 @@ async function readLockfile(ssh, ownershipId) {
     return null
   }
 
-  for (const field of ['profile', 'hermesPath', 'hermesHome', 'logPath', 'startedAt']) {
+  for (const field of ['profile', 'hermesPath', 'treecoreHome', 'logPath', 'startedAt']) {
     if (typeof parsed[field] !== 'string' || parsed[field].length > 1024) {
       return null
     }
@@ -407,7 +407,7 @@ async function pidIsOurDashboard(ssh, pid, spawnNonce, hermesPath = '') {
 
 // Kill the stale dashboard ONLY if provably ours, then drop the lockfile.
 async function cleanupStale(ssh, ownershipId, lock, pidAlive = true) {
-  if (pidAlive && lock && (await pidIsOurDashboard(ssh, lock.pid, lock.spawnNonce, lock.hermesPath))) {
+  if (pidAlive && lock && (await pidIsOurDashboard(ssh, lock.pid, lock.spawnNonce, lock.treecorePath))) {
     try {
       const result = (
         await ssh.exec(
@@ -701,12 +701,12 @@ async function connect(deps) {
   }
 
   const reuseToken = deps.reuseToken || ''
-  const hermesHome = await probeRemoteHermesHome(ssh)
+  const treecoreHome = await probeRemoteHermesHome(ssh)
   const lock = await readLockfile(ssh, ownershipId)
 
   if (lock) {
     const pidAlive = await remotePidAlive(ssh, lock.pid)
-    const owned = pidAlive && (await pidIsOurDashboard(ssh, lock.pid, lock.spawnNonce, lock.hermesPath))
+    const owned = pidAlive && (await pidIsOurDashboard(ssh, lock.pid, lock.spawnNonce, lock.treecorePath))
 
     const reusable =
       pidAlive &&
@@ -715,8 +715,8 @@ async function connect(deps) {
       lock.profile === profile &&
       Boolean(reuseToken) &&
       lock.tokenFingerprint === fingerprintToken(reuseToken) &&
-      lock.hermesPath === hermesPath &&
-      lock.hermesHome === hermesHome
+      lock.treecorePath === hermesPath &&
+      lock.treecoreHome === treecoreHome
 
     if (reusable) {
       assertNotAborted(signal)
@@ -801,7 +801,7 @@ async function connect(deps) {
     port: 0,
     profile,
     hermesPath,
-    hermesHome,
+    treecoreHome,
     logPath,
     tokenFingerprint: fingerprintToken(spawnToken),
     protocolVersion: PROTOCOL_VERSION,

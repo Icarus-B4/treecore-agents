@@ -17,9 +17,9 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@hermes/plugin-sdk": ["./src/sdk/index.ts"],
-      "@hermes/shared/billing": ["../../packages/shared/src/billing-types.ts"],
-      "@hermes/shared": ["../../packages/shared/src/index.ts"]
+      "@treecore/plugin-sdk": ["./src/sdk/index.ts"],
+      "@treecore/shared/billing": ["../../packages/shared/src/billing-types.ts"],
+      "@treecore/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src", "../../packages/shared/src"],

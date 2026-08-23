@@ -48,7 +48,7 @@ function fsPath(endpoint: string, filePath: string) {
 }
 
 function bridge() {
-  const desktop = window.hermesDesktop
+  const desktop = window.treecoreDesktop
 
   if (!desktop) {
     throw new Error('Hermes Desktop bridge is unavailable')

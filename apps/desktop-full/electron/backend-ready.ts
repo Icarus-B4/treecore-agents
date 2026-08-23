@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 
-// `hermes serve` announces HERMES_BACKEND_READY; the legacy `hermes dashboard`
+// `treecore serve` announces HERMES_BACKEND_READY; the legacy `hermes dashboard`
 // backend announces HERMES_DASHBOARD_READY. Accept either so the desktop spawn
 // works against both the headless backend and old/dashboard runtimes.
 //
@@ -13,7 +13,7 @@ const _READY_RE = /^(?:HERMES|TREECORE)_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
 
 // The announcement clock starts the instant the backend process is spawned —
 // before uvicorn binds its socket. On a cold install the child must first
-// compile and import the whole `hermes_cli.main` → `web_server` → FastAPI/
+// compile and import the whole `treecore_cli.main` → `web_server` → FastAPI/
 // uvicorn chain, and on Windows real-time AV (Defender) scans every freshly
 // written `.pyc`. That pre-bind cost can run 30-60s on a slow disk, so a tight
 // 45s deadline kills a *healthy but still-starting* backend and respawns it,

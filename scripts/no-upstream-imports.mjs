@@ -3,7 +3,7 @@
  * Decoupling gate.
  *
  * The upstream design system was measured to have ZERO imports from app/business
- * layers (@/store, @/hermes, @/lib/gateway, @hermes/shared, @/app, @/contrib) —
+ * layers (@/store, @/treecore_cli, @/lib/gateway, @treecore/shared, @/app, @/contrib) —
  * its only seam was i18n, which this template replaces with a local adapter.
  *
  * That property is the whole reason the template can stay generic, and it is
@@ -25,9 +25,9 @@ const UI_SRC = resolve(here, '../packages/ui/src')
 
 const FORBIDDEN = [
   '@/store',
-  '@/hermes',
+  '@/treecore_cli',
   '@/lib/gateway',
-  '@hermes/shared',
+  '@treecore/shared',
   '@/app/',
   '@/contrib',
   '@nous-research/ui'

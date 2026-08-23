@@ -1,13 +1,13 @@
 /**
  * windows-hermes-path.ts
  *
- * Pure, dependency-injected pieces of Windows `hermes` resolution pulled out
+ * Pure, dependency-injected pieces of Windows `treecore` resolution pulled out
  * of main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
  * unwrapWindowsVenvHermesCommand(). Each of the three functions here pins one
  * of the Windows resolution bugs that caused desktop reinstall loops:
  *
  *   1. buildPathExtCandidates() — findOnPath() tried the empty extension
- *      FIRST, so an extensionless Git-Bash `hermes` shim shadowed the real
+ *      FIRST, so an extensionless Git-Bash `treecore` shim shadowed the real
  *      hermes.cmd/hermes.exe; the shim then failed the --version probe and
  *      the desktop fell through to a spurious bootstrap/repair. The fix:
  *      PATHEXT extensions first, empty extension LAST.
@@ -40,7 +40,7 @@ import path from 'node:path'
  * On Windows this MUST try PATHEXT extensions (.COM;.EXE;.BAT;.CMD by
  * default) BEFORE the bare/empty-extension name: a real command resolves via
  * its .exe/.cmd per Windows command-resolution semantics, and an
- * extensionless file (e.g. a Git-Bash shell-script shim named `hermes`) must
+ * extensionless file (e.g. a Git-Bash shell-script shim named `treecore`) must
  * not shadow `hermes.cmd`/`hermes.exe`. The empty entry is kept LAST so
  * callers that already include the extension (py.exe, pwsh.exe,
  * powershell.exe) still resolve.
@@ -173,12 +173,12 @@ export interface ResolveVenvHermesCommandDeps {
   getVenvPython: (venvRoot: string) => string
   getVenvSitePackagesEntries: (venvRoot: string) => string[]
   buildDesktopBackendEnv: (opts: {
-    hermesHome: string
+    treecoreHome: string
     treecoreHome: string
     pythonPathEntries: string[]
     venvRoot: string
   }) => Record<string, string>
-  hermesHome: string
+  treecoreHome: string
   treecoreHome: string
   resolvePath: (...segments: string[]) => string
   dirname: (p: string) => string
@@ -187,9 +187,9 @@ export interface ResolveVenvHermesCommandDeps {
 }
 
 /**
- * If `command` is a Windows venv `hermes`/`hermes.exe` console-script shim
+ * If `command` is a Windows venv `treecore`/`hermes.exe` console-script shim
  * (i.e. `<venvRoot>/Scripts/hermes(.exe)`), resolve it to the underlying
- * venv python invoked as `python -m hermes_cli.main <backendArgs>` — but
+ * venv python invoked as `python -m treecore_cli.main <backendArgs>` — but
  * ONLY after smoke-testing that interpreter with canImportHermesCli(). A
  * venv whose update died mid-`pip install` still has python.exe + hermes.exe
  * on disk, but the backend dies on its first import (e.g.
@@ -228,7 +228,7 @@ export function resolveVenvTreecoreCommand(
     getVenvPython,
     getVenvSitePackagesEntries,
     buildDesktopBackendEnv,
-    hermesHome,
+    treecoreHome,
     resolvePath,
     dirname,
     basename,
@@ -279,11 +279,11 @@ export function resolveVenvTreecoreCommand(
   return {
     label: `existing Hermes Python at ${python}`,
     command: python,
-    args: ['-m', 'hermes_cli.main', ...backendArgs],
+    args: ['-m', 'treecore_cli.main', ...backendArgs],
     bootstrap: false,
     env: buildDesktopBackendEnv({
-      hermesHome,
-      treecoreHome: hermesHome,
+      treecoreHome,
+      treecoreHome: treecoreHome,
       pythonPathEntries: [...(directoryExists(root) ? [root] : []), ...getVenvSitePackagesEntries(venvRoot)],
       venvRoot
     }),

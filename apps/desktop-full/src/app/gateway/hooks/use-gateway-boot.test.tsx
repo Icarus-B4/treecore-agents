@@ -148,7 +148,7 @@ beforeEach(() => {
   FakeWebSocket.instances = []
   connectionApplied = null
   ;(globalThis as { WebSocket: unknown }).WebSocket = FakeWebSocket
-  ;(window as { hermesDesktop?: unknown }).hermesDesktop = fakeDesktop()
+  ;(window as { hermesDesktop?: unknown }).treecoreDesktop = fakeDesktop()
   $gatewayState.set('idle')
   $desktopBoot.set({
     error: null,
@@ -179,7 +179,7 @@ afterEach(() => {
 
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as { hermesDesktop?: unknown }).treecoreDesktop
 })
 
 // Let pending microtasks (awaits) AND the queued 0ms socket open/error fire.
@@ -214,7 +214,7 @@ describe('useGatewayBoot remote reconnect loop (real hook, fake socket)', () => 
           rejectConn = reject
         })
     )
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = desktop
+    ;(window as { hermesDesktop?: unknown }).treecoreDesktop = desktop
 
     render(<Harness />)
     await flushAsync()

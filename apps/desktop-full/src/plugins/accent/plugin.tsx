@@ -13,8 +13,8 @@
  * authored.
  */
 
-import type { HermesPlugin, PaletteContribution } from '@hermes/plugin-sdk'
-import { $accentOverride, PALETTE_AREA, setAccentOverride, STATUSBAR_AREAS } from '@hermes/plugin-sdk'
+import type { HermesPlugin, PaletteContribution } from '@treecore/plugin-sdk'
+import { $accentOverride, PALETTE_AREA, setAccentOverride, STATUSBAR_AREAS } from '@treecore/plugin-sdk'
 
 import { AccentPickerTrigger } from './picker'
 

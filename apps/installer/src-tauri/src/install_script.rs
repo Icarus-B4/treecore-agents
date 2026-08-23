@@ -385,7 +385,7 @@ async fn download(kind: ScriptKind, commit_or_ref: &str, dest_path: &Path) -> Re
         .build()
         .context("building download client")?
         .get(&url)
-        .header("User-Agent", "hermes-setup/0.0.1")
+        .header("User-Agent", "treecore-setup/0.0.1")
         .send()
         .await
         .with_context(|| format!("GET {url}"))?;
@@ -505,7 +505,7 @@ mod tests {
     fn upgrade_cached_script_adds_bom_to_legacy_ps1() {
         // A .ps1 cached by a pre-#67193 installer has no BOM; the Reuse path
         // must upgrade it in place instead of serving the broken bytes forever.
-        let dir = std::env::temp_dir().join(format!("hermes-bom-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("treecore_cli-bom-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let cached = dir.join("install-abc1234.ps1");
         std::fs::write(&cached, b"Write-Host legacy\n").unwrap();
@@ -525,7 +525,7 @@ mod tests {
 
     #[test]
     fn upgrade_cached_script_leaves_sh_untouched() {
-        let dir = std::env::temp_dir().join(format!("hermes-bom-sh-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("treecore_cli-bom-sh-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let cached = dir.join("install-main.sh");
         std::fs::write(&cached, b"#!/bin/bash\n").unwrap();

@@ -26,7 +26,7 @@ function failBoot() {
 }
 
 function stubDesktop(config: Record<string, unknown>) {
-  const original = window.hermesDesktop
+  const original = window.treecoreDesktop
   Object.defineProperty(window, 'hermesDesktop', {
     configurable: true,
     value: { getRecentLogs: async () => ({ lines: [] }), getConnectionConfig: async () => config }

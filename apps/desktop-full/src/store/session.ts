@@ -1,4 +1,4 @@
-import type { ConnectionState } from '@hermes/shared'
+import type { ConnectionState } from '@treecore/shared'
 import { atom, computed } from 'nanostores'
 
 import { lastVisibleMessageIsUser } from '@/app/chat/thread-loading'
@@ -170,7 +170,7 @@ export type NewChatWorkspaceTarget = null | string | undefined
 export const getConfiguredDefaultProjectDir = (): string => configuredDefaultProjectDir
 
 export async function syncConfiguredDefaultProjectDir(): Promise<string> {
-  const settings = window.hermesDesktop?.settings?.getDefaultProjectDir
+  const settings = window.treecoreDesktop?.settings?.getDefaultProjectDir
 
   if (!settings) {
     configuredDefaultProjectDir = ''
@@ -188,7 +188,7 @@ export async function syncConfiguredDefaultProjectDir(): Promise<string> {
  *  packaged, optional Settings override). Clears stale install-dir paths that
  *  PR #37586's localStorage stickiness can preserve across the #37536 fix. */
 export async function ensureDefaultWorkspaceCwd(): Promise<void> {
-  const sanitize = window.hermesDesktop?.sanitizeWorkspaceCwd
+  const sanitize = window.treecoreDesktop?.sanitizeWorkspaceCwd
 
   if (!sanitize) {
     return

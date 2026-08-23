@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { canOpenNewWindow, canOpenSessionWindow, openNewWindow, openSessionInNewWindow } from './windows'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialHermesDesktop = desktopWindow.treecoreDesktop
 
 const notifyError = vi.fn()
 
@@ -15,7 +15,7 @@ function installBridge(
   openSessionWindow?: Window['hermesDesktop']['openSessionWindow'],
   openWindow?: Window['hermesDesktop']['openWindow']
 ) {
-  desktopWindow.hermesDesktop = {
+  desktopWindow.treecoreDesktop = {
     ...(openSessionWindow ? { openSessionWindow } : {}),
     ...(openWindow ? { openWindow } : {})
   } as unknown as Window['hermesDesktop']
@@ -27,15 +27,15 @@ beforeEach(() => {
 
 afterEach(() => {
   if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+    desktopWindow.treecoreDesktop = initialHermesDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
   }
 })
 
 describe('canOpenSessionWindow', () => {
   it('is false when the desktop bridge is absent', () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
     expect(canOpenSessionWindow()).toBe(false)
   })
 
@@ -62,7 +62,7 @@ describe('openSessionInNewWindow', () => {
   })
 
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
 
     await openSessionInNewWindow('s1')
 
@@ -108,7 +108,7 @@ describe('openSessionInNewWindow', () => {
 
 describe('canOpenNewWindow', () => {
   it('is false when the desktop bridge is absent', () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
     expect(canOpenNewWindow()).toBe(false)
   })
 
@@ -125,7 +125,7 @@ describe('canOpenNewWindow', () => {
 
 describe('openNewWindow', () => {
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
 
     await openNewWindow()
 

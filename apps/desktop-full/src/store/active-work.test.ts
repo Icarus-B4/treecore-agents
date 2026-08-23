@@ -14,7 +14,7 @@ const busy = (storedSessionId: string, isBusy: boolean) =>
 const session = (id: string, title: null | string) => ({ id, title }) as (typeof $sessions.value)[number]
 
 beforeAll(async () => {
-  desktopWindow.hermesDesktop = { setActiveWork } as unknown as Window['hermesDesktop']
+  desktopWindow.treecoreDesktop = { setActiveWork } as unknown as Window['hermesDesktop']
   // Subscribes at import time, so the bridge has to exist first.
   await import('./active-work')
 })

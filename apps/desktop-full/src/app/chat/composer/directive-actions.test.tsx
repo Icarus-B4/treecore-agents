@@ -46,7 +46,7 @@ function pillValue() {
 afterEach(() => {
   cleanup()
   document.body.replaceChildren()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.treecoreDesktop
   openSession.mockReset()
   vi.useRealTimers()
 })
@@ -65,7 +65,7 @@ describe('ComposerDirectiveActions', () => {
   it('opens a url externally rather than navigating the app', () => {
     const openExternal = vi.fn().mockResolvedValue(undefined)
 
-    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.treecoreDesktop = { openExternal } as unknown as Window['hermesDesktop']
 
     const editor = mountEditor([{ kind: 'url', value: 'https://example.com/docs' }])
 

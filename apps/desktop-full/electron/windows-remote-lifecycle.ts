@@ -25,20 +25,20 @@ async function probeWindowsRemote(ssh, explicitHermesPath = '') {
   const script = [
     '$ErrorActionPreference="Stop"',
     `$explicit=${explicit}`,
-    '$hermesHome=$env:HERMES_HOME',
-    'if(-not $hermesHome){$hermesHome=Join-Path $env:LOCALAPPDATA "hermes"}',
+    '$treecoreHome=$env:TREECORE_HOME',
+    'if(-not $treecoreHome){$treecoreHome=Join-Path $env:LOCALAPPDATA "hermes"}',
     '$candidates=@()',
     'if($explicit){$candidates+=$explicit}',
     '$cmd=Get-Command hermes.exe -ErrorAction SilentlyContinue',
     'if($cmd){$candidates+=$cmd.Source}',
-    '$candidates+=(Join-Path $hermesHome "hermes-agent\\venv\\Scripts\\hermes.exe")',
-    '$candidates+=(Join-Path $HOME "hermes-agent\\.venv\\Scripts\\hermes.exe")',
+    '$candidates+=(Join-Path $treecoreHome "treecore-agent\\venv\\Scripts\\hermes.exe")',
+    '$candidates+=(Join-Path $HOME "treecore-agent\\.venv\\Scripts\\hermes.exe")',
     '$hermes=$candidates|Where-Object{Test-Path -LiteralPath $_ -PathType Leaf}|Select-Object -First 1',
     'if(-not $hermes){throw "Hermes is not installed on the remote Windows host."}',
     'if($explicit -and $hermes -ne $explicit){throw "The configured Hermes path is not an executable file."}',
     '$python=Join-Path (Split-Path $hermes) "python.exe"',
     'if(-not (Test-Path -LiteralPath $python -PathType Leaf)){throw "The remote Hermes Python runtime was not found."}',
-    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;hermesHome=$hermesHome;hermesPath=$hermes;python=$python}|ConvertTo-Json -Compress'
+    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;treecoreHome=$treecoreHome;hermesPath=$hermes;python=$python}|ConvertTo-Json -Compress'
   ].join(';')
 
   return JSON.parse((await ssh.exec(powerShellCommand(script))).trim())
@@ -91,7 +91,7 @@ async function detectRemotePlatform(ssh, explicitHermesPath = '') {
 }
 
 function helperCommand(runtime, operation, args = []) {
-  const argv = [runtime.python, '-m', 'hermes_cli.windows_ssh_runtime', operation, ...args]
+  const argv = [runtime.python, '-m', 'treecore_cli.windows_ssh_runtime', operation, ...args]
 
   const script = [
     '$ErrorActionPreference="Stop"',
@@ -144,8 +144,8 @@ function validLock(lock, ownershipId) {
     lock.port >= 0 &&
     lock.port <= 65535 &&
     /^[0-9a-f]{32}$/.test(lock.tokenFingerprint || '') &&
-    typeof lock.hermesPath === 'string' &&
-    typeof lock.hermesHome === 'string'
+    typeof lock.treecorePath === 'string' &&
+    typeof lock.treecoreHome === 'string'
   )
 }
 
@@ -157,8 +157,8 @@ function reusableWindowsLock(lock, state, profile, reuseToken, runtime) {
     lock.profile === profile &&
     reuseToken &&
     lock.tokenFingerprint === fingerprintToken(reuseToken) &&
-    lock.hermesPath === runtime.hermesPath &&
-    lock.hermesHome === runtime.hermesHome
+    lock.treecorePath === runtime.treecorePath &&
+    lock.treecoreHome === runtime.treecoreHome
   )
 }
 
@@ -174,7 +174,7 @@ async function processState(ssh, runtime, lock) {
   return helper(ssh, runtime, 'process-state', [
     String(lock.pid),
     String(lock.creationTimeNs),
-    lock.hermesPath,
+    lock.treecorePath,
     lock.spawnNonce
   ])
 }
@@ -197,7 +197,7 @@ async function cleanupOwned(ssh, runtime, ownershipId, lock) {
       await helper(ssh, runtime, 'terminate', [
         String(lock.pid),
         String(lock.creationTimeNs),
-        lock.hermesPath,
+        lock.treecorePath,
         lock.spawnNonce
       ])
     }
@@ -288,7 +288,7 @@ async function connectWindowsRemote(deps) {
 
   assertCurrent(signal)
   const runtime = await probeWindowsRemote(ssh, remoteHermesPath)
-  const inspection = await helper(ssh, runtime, 'inspect', [runtime.hermesPath])
+  const inspection = await helper(ssh, runtime, 'inspect', [runtime.treecorePath])
 
   if (!inspection.supported) {
     const error: any = new Error('Update Hermes on the remote Windows host before connecting with Desktop SSH.')
@@ -296,10 +296,10 @@ async function connectWindowsRemote(deps) {
     throw error
   }
 
-  runtime.hermesPath = inspection.path
+  runtime.treecorePath = inspection.path
   const hermesVersion = inspection.version || ''
   rememberLog(`[ssh-lifecycle] remote platform Windows/${runtime.arch}`)
-  rememberLog(`[ssh-lifecycle] located hermes at ${runtime.hermesPath}`)
+  rememberLog(`[ssh-lifecycle] located hermes at ${runtime.treecorePath}`)
 
   const lock = await helper(ssh, runtime, 'read-lock', [ownershipId])
 
@@ -331,7 +331,7 @@ async function connectWindowsRemote(deps) {
             pid: lock.pid,
             reused: true,
             platform: { os: 'Windows', arch: runtime.arch },
-            hermesPath: runtime.hermesPath,
+            hermesPath: runtime.treecorePath,
             hermesVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
@@ -368,7 +368,7 @@ async function connectWindowsRemote(deps) {
       runtime,
       'spawn',
       [],
-      JSON.stringify({ ownershipId, spawnNonce, profile, hermesPath: runtime.hermesPath })
+      JSON.stringify({ ownershipId, spawnNonce, profile, hermesPath: runtime.treecorePath })
     )
   } catch (error) {
     await helper(ssh, runtime, 'remove-token', [ownershipId, spawnNonce])
@@ -384,8 +384,8 @@ async function connectWindowsRemote(deps) {
     creationTimeNs: spawned.creationTimeNs,
     port: 0,
     profile,
-    hermesPath: runtime.hermesPath,
-    hermesHome: runtime.hermesHome,
+    hermesPath: runtime.treecorePath,
+    treecoreHome: runtime.treecoreHome,
     tokenFingerprint: fingerprintToken(token),
     startedAt: new Date().toISOString()
   }
@@ -416,7 +416,7 @@ async function connectWindowsRemote(deps) {
       pid: spawned.pid,
       reused: false,
       platform: { os: 'Windows', arch: runtime.arch },
-      hermesPath: runtime.hermesPath,
+      hermesPath: runtime.treecorePath,
       hermesVersion,
       ownershipId,
       spawnNonce,

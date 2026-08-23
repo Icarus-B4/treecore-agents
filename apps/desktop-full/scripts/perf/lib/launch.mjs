@@ -5,7 +5,7 @@
 // the measurement that the single-instance lock used to prevent:
 //   · its own --user-data-dir  → its own Electron single-instance lock, so it
 //     never collides with (or steals focus from) the user's running `hgui`.
-//   · its own HERMES_HOME      → its own backend + sessions, no shared state.
+//   · its own TREECORE_HOME      → its own backend + sessions, no shared state.
 //   · its own --remote-debugging-port → a private CDP endpoint.
 //   · HERMES_DESKTOP_BOOT_FAKE=1 → deterministic boot overlay.
 // The synthetic scenarios drive `$messages` directly, so no LLM credits are
@@ -47,9 +47,9 @@ async function waitFor(fn, { timeoutMs, label }) {
   throw new Error(`timed out after ${timeoutMs}ms waiting for ${label}`)
 }
 
-// Seed an isolated HERMES_HOME with just enough config (NOT sessions) so the
+// Seed an isolated TREECORE_HOME with just enough config (NOT sessions) so the
 // spawned instance reaches an empty chat view instead of the onboarding wizard.
-// A separate HERMES_HOME dir means a separate gateway lock — no collision with
+// A separate TREECORE_HOME dir means a separate gateway lock — no collision with
 // the user's running app, which keeps its own sessions DB and state.
 function seedConfigFrom(sourceHome, targetHome) {
   if (!existsSync(sourceHome)) {
@@ -167,7 +167,7 @@ export async function startIsolatedInstance({
   devPort = 5174,
   prod = false,
   coldStart = false,
-  hermesHome,
+  treecoreHome,
   userDataDir,
   seedConfig = true,
   settleMs = 2500,
@@ -183,12 +183,12 @@ export async function startIsolatedInstance({
     return dir
   }
 
-  const home = hermesHome ?? mkTemp('hermes-perf-home-')
-  const userData = userDataDir ?? mkTemp('hermes-perf-ud-')
+  const home = treecoreHome ?? mkTemp('treecore_cli-perf-home-')
+  const userData = userDataDir ?? mkTemp('treecore_cli-perf-ud-')
   const devUrl = prod ? null : `http://127.0.0.1:${devPort}`
 
-  if (seedConfig && !hermesHome) {
-    seedConfigFrom(join(homedir(), '.hermes'), home)
+  if (seedConfig && !treecoreHome) {
+    seedConfigFrom(join(homedir(), '.treecore'), home)
   }
 
   const teardown = () => {
@@ -229,7 +229,7 @@ export async function startIsolatedInstance({
     }
 
     // Isolated Electron: own --user-data-dir (single-instance lock scope) + own
-    // HERMES_HOME (backend + sessions). No DEV_SERVER env in prod → dist load.
+    // TREECORE_HOME (backend + sessions). No DEV_SERVER env in prod → dist load.
     const electronBin = require('electron')
     // NB: do NOT set HERMES_DESKTOP_BOOT_FAKE here — it injects artificial
     // per-phase sleeps into the boot overlay, which inflates cold-start timing
@@ -237,7 +237,7 @@ export async function startIsolatedInstance({
     // real boot sequence.
     const env = {
       ...process.env,
-      HERMES_HOME: home,
+      TREECORE_HOME: home,
       XCURSOR_SIZE: '24'
     }
 
@@ -339,9 +339,9 @@ export async function coldStartSamples({ runs = 3, port = 9222, devPort = 5174, 
   if (warm) {
     // Shared profile across runs: run 0 warms the V8 code cache (discarded),
     // runs 1..N are the representative warm samples.
-    const home = mkdtempSync(join(tmpdir(), 'hermes-perf-cold-home-'))
-    const userDataDir = mkdtempSync(join(tmpdir(), 'hermes-perf-cold-ud-'))
-    seedConfigFrom(join(homedir(), '.hermes'), home)
+    const home = mkdtempSync(join(tmpdir(), 'treecore_cli-perf-cold-home-'))
+    const userDataDir = mkdtempSync(join(tmpdir(), 'treecore_cli-perf-cold-ud-'))
+    seedConfigFrom(join(homedir(), '.treecore'), home)
 
     try {
       for (let i = 0; i <= runs; i++) {
@@ -350,7 +350,7 @@ export async function coldStartSamples({ runs = 3, port = 9222, devPort = 5174, 
           devPort: devPort + i,
           prod,
           coldStart: true,
-          hermesHome: home,
+          treecoreHome: home,
           userDataDir,
           seedConfig: false
         })

@@ -515,7 +515,7 @@ export async function createOrOpenPr(): Promise<void> {
   const existing = $reviewShipInfo.get().pr
 
   if (existing?.url) {
-    void window.hermesDesktop?.openExternal?.(existing.url)
+    void window.treecoreDesktop?.openExternal?.(existing.url)
 
     return
   }
@@ -524,7 +524,7 @@ export async function createOrOpenPr(): Promise<void> {
     const { url } = await ctx.review.createPr(ctx.cwd)
 
     if (url) {
-      void window.hermesDesktop?.openExternal?.(url)
+      void window.treecoreDesktop?.openExternal?.(url)
     }
 
     void refreshShipInfo()

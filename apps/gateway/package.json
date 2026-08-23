@@ -1,9 +1,9 @@
 {
-  "name": "hermes-local-gateway",
+  "name": "treecore-local-gateway",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local standalone gateway for the copied Hermes Desktop — JSON-RPC over WS + REST, speaks the @hermes/shared protocol, runs an LLM + local shell tools with NO Nous backend.",
+  "description": "Local standalone gateway for the copied Hermes Desktop — JSON-RPC over WS + REST, speaks the @treecore/shared protocol, runs an LLM + local shell tools with NO Nous backend.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "node --watch src/index.mjs",

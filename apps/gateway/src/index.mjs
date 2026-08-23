@@ -1,6 +1,6 @@
 // Hermes Local Gateway — minimal standalone backend for the copied Hermes
-// Desktop app. Speaks the @hermes/shared JSON-RPC-over-WS protocol + the REST
-// surface the renderer hits (window.hermesDesktop.api). NO Nous backend.
+// Desktop app. Speaks the @treecore/shared JSON-RPC-over-WS protocol + the REST
+// surface the renderer hits (window.treecoreDesktop.api). NO Nous backend.
 //
 // What it does today (proven minimal core):
 //   - WS JSON-RPC: session.info, prompt.submit, llm.oneshot, model.options,
@@ -271,5 +271,5 @@ wss.on('connection', (ws) => {
 })
 
 server.listen(PORT, () => {
-  console.log(`[hermes-local-gateway] listening on http://localhost:${PORT} (ws ${WS_PATH}), LLM=${LLM_MODEL} @ ${LLM_BASE_URL}`)
+  console.log(`[treecore-local-gateway] listening on http://localhost:${PORT} (ws ${WS_PATH}), LLM=${LLM_MODEL} @ ${LLM_BASE_URL}`)
 })

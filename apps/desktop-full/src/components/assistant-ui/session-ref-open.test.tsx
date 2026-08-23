@@ -17,7 +17,7 @@ const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDeskt
 afterEach(() => {
   cleanup()
   openSession.mockClear()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.treecoreDesktop
   __resetSessionLinkTitleCache()
 })
 
@@ -52,7 +52,7 @@ describe('url refs open externally', () => {
   it('opens a url chip in the user transcript', () => {
     const openExternal = vi.fn().mockResolvedValue(undefined)
 
-    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.treecoreDesktop = { openExternal } as unknown as Window['hermesDesktop']
 
     render(<DirectiveContent text="see @url:`https://example.com/docs` when you can" />)
 

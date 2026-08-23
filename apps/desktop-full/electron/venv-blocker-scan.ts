@@ -39,7 +39,7 @@ export type ScanOutcome =
 // ---------------------------------------------------------------------------
 
 const SCAN_TIMEOUT_MS = 15000
-const SCAN_MODULE = 'hermes_cli._scan_venv_blockers'
+const SCAN_MODULE = 'treecore_cli._scan_venv_blockers'
 
 // ---------------------------------------------------------------------------
 // Public API

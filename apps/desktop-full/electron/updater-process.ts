@@ -45,10 +45,10 @@ function stagedFileMtimeMs(candidate: string): number | null {
 /**
  * Decide which staged installer binary — if any — may be handed an update.
  *
- * The Tauri installer self-copies into HERMES_HOME on *every* platform
- * (`hermes-setup.exe` on Windows, `hermes-setup` elsewhere — see
+ * The Tauri installer self-copies into TREECORE_HOME on *every* platform
+ * (`treecore-setup.exe` on Windows, `treecore-setup` elsewhere — see
  * apps/bootstrap-installer `paths::installer_dest` and
- * `bootstrap::copy_self_to_hermes_home`), so finding that binary on macOS or
+ * `bootstrap::copy_self_to_treecore_home`), so finding that binary on macOS or
  * Linux is expected, not leftover junk.
  *
  * Handing an update to it is nonetheless a Windows-only policy. Windows needs
@@ -66,7 +66,7 @@ function stagedFileMtimeMs(candidate: string): number | null {
  * install that never went through the installer); callers degrade gracefully.
  */
 export function resolveStagedUpdaterBinary(
-  hermesHome: string,
+  treecoreHome: string,
   deps: ResolveStagedUpdaterBinaryDeps = {}
 ): string | null {
   const isWindows = deps.isWindows ?? process.platform === 'win32'
@@ -76,7 +76,7 @@ export function resolveStagedUpdaterBinary(
   }
 
   const fileExists = deps.fileExists ?? stagedFileExists
-  const candidate = path.join(hermesHome, 'hermes-setup.exe')
+  const candidate = path.join(treecoreHome, 'treecore-setup.exe')
 
   return fileExists(candidate) ? candidate : null
 }
@@ -84,7 +84,7 @@ export function resolveStagedUpdaterBinary(
 /**
  * True when the staged installer is new enough to survive a pre-written marker.
  *
- * `copy_self_to_hermes_home` deliberately no-ops during `--update`
+ * `copy_self_to_treecore_home` deliberately no-ops during `--update`
  * (apps/bootstrap-installer/src-tauri/src/paths.rs), so the binary staged by a
  * user's ORIGINAL install orchestrates every later update — forever. Installers
  * predating #74782 have no self-PID exclusion in `UpdateMarkerGuard::acquire`,
@@ -96,7 +96,7 @@ export function resolveStagedUpdaterBinary(
  * pulls the permanent fixes. See shouldPrewriteUpdateMarker.
  *
  * We cannot ask the binary its version without executing it, so use its mtime:
- * the installer is written to HERMES_HOME at install/repair time, making mtime
+ * the installer is written to TREECORE_HOME at install/repair time, making mtime
  * a faithful stamp of which installer generation produced it.
  *
  * Unreadable mtime counts as UNSUPPORTED — the pre-write is a best-effort

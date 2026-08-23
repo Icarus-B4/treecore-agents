@@ -210,7 +210,7 @@ describe('scanVenvBlockers', () => {
     assert.equal(calls.length, 1)
     const c = calls[0]
     assert.ok(c.cmd.endsWith('python.exe'))
-    assert.deepEqual(c.args, ['-m', 'hermes_cli._scan_venv_blockers'])
+    assert.deepEqual(c.args, ['-m', 'treecore_cli._scan_venv_blockers'])
     assert.equal(c.cwd, '/update/root')
     assert.equal(typeof c.timeout, 'number')
     assert.ok(c.timeout > 0)

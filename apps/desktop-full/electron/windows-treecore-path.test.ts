@@ -1,9 +1,9 @@
-// Unit tests for the pure Windows `hermes` resolution helpers extracted from
+// Unit tests for the pure Windows `treecore` resolution helpers extracted from
 // main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
 // unwrapWindowsVenvHermesCommand(). These pin the two Windows resolution bugs
 // that caused desktop reinstall loops:
 //   1. buildPathExtCandidates() — PATHEXT extensions must be tried BEFORE the
-//      empty extension, or an extensionless Git-Bash `hermes` shim shadows
+//      empty extension, or an extensionless Git-Bash `treecore` shim shadows
 //      the real hermes.cmd/hermes.exe.
 //   2. chooseUpdaterArgs() — must gate on haveRealInstall (any real-install
 //      signal), not just the hermes.exe console-script shim, or healthy
@@ -69,7 +69,7 @@ function makeDeps(overrides: Partial<Parameters<typeof resolveVenvTreecoreComman
     getVenvPython: (venvRoot: string) => `${venvRoot}/Scripts/python.exe`,
     getVenvSitePackagesEntries: () => [],
     buildDesktopBackendEnv: () => ({ FAKE_ENV: '1' }),
-    hermesHome: '/fake/hermes-home',
+    treecoreHome: '/fake/hermes-home',
     treecoreHome: '/fake/treecore-home',
     resolvePath: (...segments: string[]) => segments.join('/').replace(/\/+/g, '/'),
     dirname: (p: string) => p.slice(0, p.lastIndexOf('/')) || '/',
@@ -133,7 +133,7 @@ test('resolveVenvHermesCommand: returns the resolved python backend descriptor w
 
   assert.ok(result, 'a passing probe must return a backend descriptor, not null')
   assert.equal(result.command, '/root/venv/Scripts/python.exe')
-  assert.deepEqual(result.args, ['-m', 'hermes_cli.main', 'serve', '--port', '0'])
+  assert.deepEqual(result.args, ['-m', 'treecore_cli.main', 'serve', '--port', '0'])
   assert.equal(result.bootstrap, false)
   assert.equal(result.kind, 'python')
   assert.equal(result.shell, false)

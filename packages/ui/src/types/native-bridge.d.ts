@@ -1,7 +1,7 @@
 /**
  * Optional native-host bridge.
  *
- * `lib/renderer-loop-pause.ts` probes `window.hermesDesktop?.onWindowStateChanged`
+ * `lib/renderer-loop-pause.ts` probes `window.treecoreDesktop?.onWindowStateChanged`
  * to stop animation loops while the native window is minimised or hidden — a real
  * battery optimisation, worth keeping rather than stripping out.
  *

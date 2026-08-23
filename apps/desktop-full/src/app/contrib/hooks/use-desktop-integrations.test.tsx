@@ -14,7 +14,7 @@ import { useDesktopIntegrations } from './use-desktop-integrations'
 // profile-ready gate, ownership validation, and legacy-key discard.
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialHermesDesktop = desktopWindow.treecoreDesktop
 
 const session = (over: Partial<SessionInfo> = {}): SessionInfo => ({
   archived: false,
@@ -45,8 +45,8 @@ describe('useDesktopIntegrations', () => {
 
     // Stub the desktop bridge so the hook's useEffect callbacks don't try to
     // reach real Electron IPC. The established desktop-test pattern assigns a
-    // plain object to window.hermesDesktop rather than using vi.spyOn.
-    desktopWindow.hermesDesktop = {
+    // plain object to window.treecoreDesktop rather than using vi.spyOn.
+    desktopWindow.treecoreDesktop = {
       setPreviewShortcutActive: vi.fn(),
       onOpenUpdatesRequested: vi.fn(),
       onFocusSession: vi.fn(),
@@ -60,7 +60,7 @@ describe('useDesktopIntegrations', () => {
 
   afterEach(() => {
     if (initialHermesDesktop) {
-      desktopWindow.hermesDesktop = initialHermesDesktop
+      desktopWindow.treecoreDesktop = initialHermesDesktop
     }
 
     vi.restoreAllMocks()

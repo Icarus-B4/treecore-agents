@@ -17,11 +17,11 @@ describe('MarkdownTextContent remote images', () => {
     throw new Error(`unexpected path ${path}`)
   })
 
-  let originalDesktop: typeof window.hermesDesktop
+  let originalDesktop: typeof window.treecoreDesktop
 
   beforeEach(() => {
     api.mockClear()
-    originalDesktop = window.hermesDesktop
+    originalDesktop = window.treecoreDesktop
     Object.defineProperty(window, 'hermesDesktop', {
       configurable: true,
       value: { api }

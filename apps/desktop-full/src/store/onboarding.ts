@@ -196,7 +196,7 @@ function notifyReady(provider: string) {
 }
 
 // Human-friendly labels for tools auto-routed through the Nous Tool Gateway,
-// mirroring hermes_cli/nous_subscription._GATEWAY_TOOL_LABELS so the GUI and
+// mirroring treecore_cli/nous_subscription._GATEWAY_TOOL_LABELS so the GUI and
 // CLI describe the same thing.
 const GATEWAY_TOOL_LABELS: Record<string, string> = {
   browser: 'browser automation',
@@ -562,9 +562,9 @@ export async function refreshOnboarding(ctx: OnboardingContext) {
 // the flow never silently stalls in a waiting state. Mirrors the pattern in
 // apps/desktop/src/app/artifacts/index.tsx.
 async function openSignInUrl(url: string) {
-  if (window.hermesDesktop?.openExternal) {
+  if (window.treecoreDesktop?.openExternal) {
     try {
-      await window.hermesDesktop.openExternal(url)
+      await window.treecoreDesktop.openExternal(url)
 
       return
     } catch {

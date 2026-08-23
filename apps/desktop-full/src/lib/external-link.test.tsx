@@ -13,10 +13,10 @@ import {
 } from './external-link'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialHermesDesktop = desktopWindow.treecoreDesktop
 
 function installDesktopBridge(partial: Partial<Window['hermesDesktop']> = {}) {
-  desktopWindow.hermesDesktop = {
+  desktopWindow.treecoreDesktop = {
     fetchLinkTitle: vi.fn().mockResolvedValue(''),
     openExternal: vi.fn().mockResolvedValue(undefined),
     ...partial
@@ -39,9 +39,9 @@ afterEach(() => {
   cleanup()
 
   if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+    desktopWindow.treecoreDesktop = initialHermesDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.treecoreDesktop
   }
 })
 
@@ -252,7 +252,7 @@ describe('external link helpers', () => {
   it('prefixes a pretty link to a known host with its brand glyph', () => {
     installDesktopBridge()
 
-    const url = 'https://github.com/NousResearch/hermes-agent/pull/123'
+    const url = 'https://github.com/Icarus-B4/treecore-agents/pull/123'
 
     render(<PrettyLink fallbackLabel="#123" href={url} />)
 

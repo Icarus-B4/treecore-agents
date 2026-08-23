@@ -47,7 +47,7 @@ const emojibaseDir =
 const EMOJIBASE_PATH = /^[a-z-]+\/(data|messages|shortcodes\/emojibase)\.json$/
 
 const emojibaseAssets = () => ({
-  name: 'hermes:emojibase-assets',
+  name: 'treecore:emojibase-assets',
   configureServer(server: {
     middlewares: { use: (route: string, handler: (req: any, res: any, next: () => void) => void) => void }
   }) {
@@ -144,9 +144,9 @@ export default defineConfig(({ command }) => ({
     alias: {
       '@/debug/dev-only': debugEntry(command, process.env as Record<string, string>),
       '@': path.resolve(__dirname, './src'),
-      '@hermes/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
-      '@hermes/shared/billing': path.resolve(__dirname, '../../packages/shared/src/billing-types.ts'),
-      '@hermes/shared': path.resolve(__dirname, '../../packages/shared/src'),
+      '@treecore/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
+      '@treecore/shared/billing': path.resolve(__dirname, '../../packages/shared/src/billing-types.ts'),
+      '@treecore/shared': path.resolve(__dirname, '../../packages/shared/src'),
       react: path.resolve(__dirname, '../../node_modules/react'),
       'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
       'react/jsx-dev-runtime': path.resolve(__dirname, '../../node_modules/react/jsx-dev-runtime.js'),

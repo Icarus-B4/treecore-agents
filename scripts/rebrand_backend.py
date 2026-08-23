@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """One-shot rebrand of the copied Hermes Python backend to Treecore.
 
-Run ONCE after copying the backend from hermes-agent-main into this repo root.
+Run ONCE after copying the backend from treecore-agent-main into this repo root.
 Only touches the backend paths copied in (root .py modules, agent/, tools/,
-hermes_cli/, gateway/, tui_gateway/, cron/, acp_adapter/, plugins/, providers/,
-hermes/). Does NOT touch apps/ (already branded).
+treecore_cli/, gateway/, tui_gateway/, cron/, acp_adapter/, plugins/, providers/,
+treecore_cli/). Does NOT touch apps/ (already branded).
 """
 import os
 import re
@@ -15,14 +15,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKEND_PATHS = [
     os.path.join(ROOT, "agent"),
     os.path.join(ROOT, "tools"),
-    os.path.join(ROOT, "hermes_cli"),
+    os.path.join(ROOT, "treecore_cli"),
     os.path.join(ROOT, "gateway"),
     os.path.join(ROOT, "tui_gateway"),
     os.path.join(ROOT, "cron"),
     os.path.join(ROOT, "acp_adapter"),
     os.path.join(ROOT, "plugins"),
     os.path.join(ROOT, "providers"),
-    os.path.join(ROOT, "hermes"),
+    os.path.join(ROOT, "treecore_cli"),
     os.path.join(ROOT, "pyproject.toml"),
     os.path.join(ROOT, "uv.lock"),
     os.path.join(ROOT, "setup.py"),
@@ -30,10 +30,10 @@ BACKEND_PATHS = [
 ]
 # root-level .py modules (individual files)
 ROOT_MODULES = [
-    "batch_runner.py", "cli.py", "hermes_bootstrap.py", "hermes_constants.py",
-    "hermes_logging.py", "hermes_state.py", "hermes_state_common.py",
-    "hermes_state_portability.py", "hermes_state_schema.py",
-    "hermes_state_search.py", "hermes_time.py", "mcp_serve.py",
+    "batch_runner.py", "cli.py", "treecore_cli_bootstrap.py", "treecore_constants.py",
+    "treecore_cli_logging.py", "treecore_cli_state.py", "treecore_cli_state_common.py",
+    "treecore_cli_state_portability.py", "treecore_cli_state_schema.py",
+    "treecore_cli_state_search.py", "treecore_cli_time.py", "mcp_serve.py",
     "mini_swe_runner.py", "model_tools.py", "run_agent.py", "setup.py",
     "toolset_distributions.py", "toolsets.py", "trajectory_compressor.py",
     "utils.py",
@@ -43,40 +43,40 @@ ROOT_MODULES = [
 # Order matters: longer / more specific first.
 IDENT_REPLACEMENTS = [
     # package / import names
-    ("hermes_cli", "treecore_cli"),
-    ("hermes_constants", "treecore_constants"),
-    ("hermes_state_portability", "treecore_state_portability"),
-    ("hermes_state_schema", "treecore_state_schema"),
-    ("hermes_state_search", "treecore_state_search"),
-    ("hermes_state_common", "treecore_state_common"),
-    ("hermes_state", "treecore_state"),
-    ("hermes_logging", "treecore_logging"),
-    ("hermes_bootstrap", "treecore_bootstrap"),
-    ("hermes_time", "treecore_time"),
-    ("hermes_agent", "treecore_agents"),
-    ("hermes-acp", "treecore-acp"),
-    ("hermes_agent ", "treecore_agents "),
-    ("'hermes'", "'treecore'"),
-    ('"hermes"', '"treecore"'),
-    ("hermes", "treecore"),
+    ("treecore_cli", "treecore_cli"),
+    ("treecore_constants", "treecore_constants"),
+    ("treecore_cli_state_portability", "treecore_state_portability"),
+    ("treecore_cli_state_schema", "treecore_state_schema"),
+    ("treecore_cli_state_search", "treecore_state_search"),
+    ("treecore_cli_state_common", "treecore_state_common"),
+    ("treecore_cli_state", "treecore_state"),
+    ("treecore_cli_logging", "treecore_logging"),
+    ("treecore_cli_bootstrap", "treecore_bootstrap"),
+    ("treecore_cli_time", "treecore_time"),
+    ("treecore_cli_agent", "treecore_agents"),
+    ("treecore_cli-acp", "treecore-acp"),
+    ("treecore_cli_agent ", "treecore_agents "),
+    ("'treecore_cli'", "'treecore'"),
+    ('"treecore_cli"', '"treecore"'),
+    ("treecore_cli", "treecore"),
     # env vars (uppercase) - applied after lowercase pass would catch them,
     # but be explicit so ordering is safe
     ("HERMES_DESKTOP_APP_NAME", "TREECORE_DESKTOP_APP_NAME"),
-    ("HERMES_HOME", "TREECORE_HOME"),
+    ("TREECORE_HOME", "TREECORE_HOME"),
     ("HERMES_", "TREECORE_"),
 ]
 
 # File-name renames
 FILE_RENAMES = {
-    "hermes_bootstrap.py": "treecore_bootstrap.py",
-    "hermes_constants.py": "treecore_constants.py",
-    "hermes_logging.py": "treecore_logging.py",
-    "hermes_state.py": "treecore_state.py",
-    "hermes_state_common.py": "treecore_state_common.py",
-    "hermes_state_portability.py": "treecore_state_portability.py",
-    "hermes_state_schema.py": "treecore_state_schema.py",
-    "hermes_state_search.py": "treecore_state_search.py",
-    "hermes_time.py": "treecore_time.py",
+    "treecore_cli_bootstrap.py": "treecore_bootstrap.py",
+    "treecore_constants.py": "treecore_constants.py",
+    "treecore_cli_logging.py": "treecore_logging.py",
+    "treecore_cli_state.py": "treecore_state.py",
+    "treecore_cli_state_common.py": "treecore_state_common.py",
+    "treecore_cli_state_portability.py": "treecore_state_portability.py",
+    "treecore_cli_state_schema.py": "treecore_state_schema.py",
+    "treecore_cli_state_search.py": "treecore_state_search.py",
+    "treecore_cli_time.py": "treecore_time.py",
 }
 
 
@@ -128,12 +128,12 @@ def main():
         if os.path.isfile(src):
             os.rename(src, dst)
             print(f"  renamed {old} -> {new}")
-    # rename hermes/ package dir -> treecore/
-    hermes_dir = os.path.join(ROOT, "hermes")
+    # rename treecore_cli/ package dir -> treecore/
+    treecore_cli_dir = os.path.join(ROOT, "treecore_cli")
     treecore_dir = os.path.join(ROOT, "treecore")
-    if os.path.isdir(hermes_dir) and not os.path.isdir(treecore_dir):
-        os.rename(hermes_dir, treecore_dir)
-        print("  renamed hermes/ -> treecore/")
+    if os.path.isdir(treecore_cli_dir) and not os.path.isdir(treecore_dir):
+        os.rename(treecore_cli_dir, treecore_dir)
+        print("  renamed treecore_cli/ -> treecore/")
     print("REBRAND DONE")
 
 

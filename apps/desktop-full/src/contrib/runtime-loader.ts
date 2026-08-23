@@ -3,7 +3,7 @@
  * build time. The pipeline every non-bundled plugin takes:
  *
  *   source (plain ESM js) -> [integrity check] -> bare-specifier rewrite
- *   (`@hermes/plugin-sdk` / `react*` -> live shim blobs, see sdk/runtime.ts)
+ *   (`@treecore/plugin-sdk` / `react*` -> live shim blobs, see sdk/runtime.ts)
  *   -> blob `import()` -> validate default HermesPlugin -> register(ctx)
  *
  * Loading the same plugin id again disposes the previous registrations first
@@ -50,7 +50,7 @@ const loaded = new Map<string, (() => void)[]>()
 // literal or comment (e.g. `notify('react')`) is never touched.
 const importSpecifierRe = () => /(from\s*|import\s*\(\s*|import\s+)(['"])([^'"]+)\2/g
 
-/** Rewrite ONLY mapped import specifiers (@hermes/plugin-sdk, react*) to their
+/** Rewrite ONLY mapped import specifiers (@treecore/plugin-sdk, react*) to their
  *  live shim blob URLs — never occurrences inside strings/comments. */
 function rewriteSpecifiers(source: string): string {
   const map = sdkImportMap()
@@ -116,7 +116,7 @@ export async function loadRuntimePlugin(
     if (unsupported.length > 0) {
       throw new Error(
         `unsupported import${unsupported.length > 1 ? 's' : ''}: ${unsupported.join(', ')} — ` +
-          `runtime plugins may only import @hermes/plugin-sdk and react`
+          `runtime plugins may only import @treecore/plugin-sdk and react`
       )
     }
 
@@ -204,7 +204,7 @@ let watching = false
 let scanning = false
 
 async function loadDiskPlugin(name: string, file: string): Promise<void> {
-  const desktop = window.hermesDesktop!
+  const desktop = window.treecoreDesktop!
   const entry = disk.get(name)
   const prevId = entry?.id
 
@@ -235,7 +235,7 @@ async function loadDiskPlugin(name: string, file: string): Promise<void> {
 }
 
 async function scanDiskPlugins(): Promise<void> {
-  const desktop = window.hermesDesktop
+  const desktop = window.treecoreDesktop
 
   // Re-entrancy guard: the 5s poll must not overlap a slow in-flight scan
   // (reads/loads can exceed the interval).
@@ -247,7 +247,7 @@ async function scanDiskPlugins(): Promise<void> {
 
   try {
     // The plugin root is a LOCAL Electron path, resolved independently of the
-    // connected backend — a remote backend's hermes_home is a remote path and
+    // connected backend — a remote backend's treecore_home is a remote path and
     // yields `undefined/desktop-plugins` here (#66899).
     const root = await desktop.desktopPluginsRoot?.()
 
@@ -317,7 +317,7 @@ export const discoverRuntimePlugins = scanDiskPlugins
 /** Start the self-maintaining disk door: initial scan, per-file hot reload,
  *  fs-watched folder reconciliation (poll fallback on older shells). Idempotent. */
 export function watchRuntimePlugins(): void {
-  const desktop = window.hermesDesktop
+  const desktop = window.treecoreDesktop
 
   if (watching || !desktop) {
     return
@@ -351,7 +351,7 @@ export function watchRuntimePlugins(): void {
 
     try {
       // Same Electron-local root as the scanner — never the backend's
-      // hermes_home, which is a remote path in remote mode (#66899).
+      // treecore_home, which is a remote path in remote mode (#66899).
       const root = await desktop.desktopPluginsRoot?.()
 
       if (!root) {

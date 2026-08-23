@@ -66,23 +66,23 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
  * There are two on-disk layouts. `scripts/install.ps1` unpacks portable Node
  * straight into `%LOCALAPPDATA%\hermes\node` (node.exe at the root, no `bin\`);
  * `scripts/install.sh` and the node-bootstrap helper use the POSIX
- * `$HERMES_HOME/node/bin`. Emit BOTH on every platform so mixed and migrated
+ * `$TREECORE_HOME/node/bin`. Emit BOTH on every platform so mixed and migrated
  * installs resolve, leading with the layout native to the current platform.
  *
  * This is the single source of truth for the ordering rule on the Node side —
  * `main.ts` imports it rather than keeping its own copy. Mirrors
- * `iter_hermes_node_dirs()` in hermes_constants.py, which the Electron main
+ * `iter_hermes_node_dirs()` in treecore_constants.py, which the Electron main
  * process cannot import.
  */
-function hermesManagedNodePathEntries(
-  hermesHome,
+function treecoreManagedNodePathEntries(
+  treecoreHome,
   { platform = process.platform, pathModule = pathModuleForPlatform(platform) }: any = {}
 ) {
-  if (!hermesHome) {
+  if (!treecoreHome) {
     return []
   }
 
-  const root = pathModule.join(hermesHome, 'node')
+  const root = pathModule.join(treecoreHome, 'node')
   const bin = pathModule.join(root, 'bin')
 
   return platform === 'win32' ? [root, bin] : [bin, root]
@@ -92,30 +92,30 @@ function treecoreManagedNodePathEntries(
   treecoreHome,
   opts?: any
 ) {
-  return hermesManagedNodePathEntries(treecoreHome, opts)
+  return treecoreManagedNodePathEntries(treecoreHome, opts)
 }
 
 function buildDesktopBackendPath({
-  hermesHome,
+  treecoreHome,
   venvRoot,
   currentPath = '',
   platform = process.platform,
   pathModule = pathModuleForPlatform(platform)
 }: any = {}) {
   const delimiter = delimiterForPlatform(platform)
-  const hermesNodeDirs = hermesManagedNodePathEntries(hermesHome, { platform, pathModule })
+  const hermesNodeDirs = treecoreManagedNodePathEntries(treecoreHome, { platform, pathModule })
   const venvBin = venvRoot ? pathModule.join(venvRoot, platform === 'win32' ? 'Scripts' : 'bin') : null
   const saneEntries = platform === 'win32' ? [] : POSIX_SANE_PATH_ENTRIES
 
   return appendUniquePathEntries([hermesNodeDirs, venvBin, currentPath, saneEntries], { delimiter })
 }
 
-function normalizeHermesHomeRoot(hermesHome, { pathModule = pathModuleForPlatform(process.platform) }: any = {}) {
-  if (!hermesHome) {
-    return hermesHome
+function normalizeTreecoreHomeRoot(treecoreHome, { pathModule = pathModuleForPlatform(process.platform) }: any = {}) {
+  if (!treecoreHome) {
+    return treecoreHome
   }
 
-  const resolved = pathModule.resolve(String(hermesHome))
+  const resolved = pathModule.resolve(String(treecoreHome))
   const parent = pathModule.dirname(resolved)
 
   if (pathModule.basename(parent).toLowerCase() === 'profiles') {
@@ -126,11 +126,11 @@ function normalizeHermesHomeRoot(hermesHome, { pathModule = pathModuleForPlatfor
 }
 
 function normalizeTreecoreHomeRoot(treecoreHome, opts?: any) {
-  return normalizeHermesHomeRoot(treecoreHome, opts)
+  return normalizeTreecoreHomeRoot(treecoreHome, opts)
 }
 
 function buildDesktopBackendEnv({
-  hermesHome,
+  treecoreHome,
   pythonPathEntries = [],
   venvRoot,
   currentEnv = process.env,
@@ -151,7 +151,7 @@ function buildDesktopBackendEnv({
     // this. User's explicit setting wins. Re-port of PR #56499 (echoriver89).
     PYTHONUTF8: currentEnv?.PYTHONUTF8 ?? '1',
     [key]: buildDesktopBackendPath({
-      hermesHome,
+      treecoreHome,
       venvRoot,
       currentPath: currentPathValue(currentEnv, platform),
       platform,
@@ -165,8 +165,8 @@ export {
   buildDesktopBackendEnv,
   buildDesktopBackendPath,
   delimiterForPlatform,
-  hermesManagedNodePathEntries,
-  normalizeHermesHomeRoot,
+  treecoreManagedNodePathEntries,
+  normalizeTreecoreHomeRoot,
   treecoreManagedNodePathEntries,
   normalizeTreecoreHomeRoot,
   pathEnvKey,

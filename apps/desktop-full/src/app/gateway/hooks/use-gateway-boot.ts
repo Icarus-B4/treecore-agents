@@ -1,4 +1,4 @@
-import { isGatewayReauthRequired, resolveGatewayWsUrl } from '@hermes/shared'
+import { isGatewayReauthRequired, resolveGatewayWsUrl } from '@treecore/shared'
 import { useEffect, useRef } from 'react'
 
 import type { HermesConnection } from '@/global'
@@ -58,7 +58,7 @@ interface GatewayBootOptions {
   beforeConnectionSwitch: () => void
   handleGatewayEvent: (event: RpcEvent) => void
   onConnectionReady: (
-    connection: Awaited<ReturnType<NonNullable<typeof window.hermesDesktop>['getConnection']>> | null
+    connection: Awaited<ReturnType<NonNullable<typeof window.treecoreDesktop>['getConnection']>> | null
   ) => void
   onGatewayReady: (gateway: HermesGateway | null) => void
   refreshHermesConfig: () => Promise<void>
@@ -93,7 +93,7 @@ export function useGatewayBoot({
 
   useEffect(() => {
     let cancelled = false
-    const desktop = window.hermesDesktop
+    const desktop = window.treecoreDesktop
 
     const publish = (next: HermesConnection | null) => {
       callbacksRef.current.onConnectionReady(next)

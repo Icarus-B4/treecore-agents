@@ -322,7 +322,7 @@ function safeEmbeddedImages(text: string) {
 
 function safeDirectiveSegments(text: string): Unstable_DirectiveSegment[] {
   try {
-    return [...hermesDirectiveFormatter.parse(text)]
+    return [...treecoreDirectiveFormatter.parse(text)]
   } catch {
     return [{ kind: 'text', text }]
   }
@@ -405,7 +405,7 @@ const DirectiveImage: FC<{ id: string; label: string }> = ({ id, label }) => {
     // Remote gateway: the image lives on the gateway's disk, not ours — fetch
     // it over the authenticated API. Local: read it straight off this disk.
     const load =
-      window.hermesDesktop && isRemoteGateway() ? gatewayMediaDataUrl(id) : window.hermesDesktop?.readFileDataUrl(id)
+      window.treecoreDesktop && isRemoteGateway() ? gatewayMediaDataUrl(id) : window.treecoreDesktop?.readFileDataUrl(id)
 
     void Promise.resolve(load)
       .then(url => alive && url && setSrc(url))

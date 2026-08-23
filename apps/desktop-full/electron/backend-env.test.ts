@@ -7,16 +7,16 @@ import {
   appendUniquePathEntries,
   buildDesktopBackendEnv,
   buildDesktopBackendPath,
-  hermesManagedNodePathEntries,
-  normalizeHermesHomeRoot,
+  treecoreManagedNodePathEntries,
+  normalizeTreecoreHomeRoot,
   pathEnvKey,
   POSIX_SANE_PATH_ENTRIES
 } from './backend-env'
 
 test('desktop backend PATH adds Hermes-managed bins and missing POSIX sane entries', () => {
   const result = buildDesktopBackendPath({
-    hermesHome: '/Users/test/.hermes',
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    treecoreHome: '/Users/test/.treecore',
+    venvRoot: '/Users/test/.treecore/treecore-agent/venv',
     currentPath: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin',
     platform: 'darwin',
     pathModule: path.posix
@@ -25,9 +25,9 @@ test('desktop backend PATH adds Hermes-managed bins and missing POSIX sane entri
   const entries = result.split(':')
   // Both managed-Node layouts lead, POSIX-native shape first, then the venv.
   assert.deepEqual(entries.slice(0, 3), [
-    '/Users/test/.hermes/node/bin',
-    '/Users/test/.hermes/node',
-    '/Users/test/.hermes/hermes-agent/venv/bin'
+    '/Users/test/.treecore/node/bin',
+    '/Users/test/.treecore/node',
+    '/Users/test/.treecore/treecore-agent/venv/bin'
   ])
   assert.ok(entries.includes('/opt/homebrew/bin'), 'Apple Silicon Homebrew bin is added')
   assert.ok(entries.includes('/opt/homebrew/sbin'), 'Apple Silicon Homebrew sbin is added')
@@ -39,19 +39,19 @@ test('desktop backend PATH adds Hermes-managed bins and missing POSIX sane entri
 })
 
 test('managed Node dirs lead with the platform-native layout but always offer both', () => {
-  const posix = hermesManagedNodePathEntries('/Users/test/.hermes', {
+  const posix = treecoreManagedNodePathEntries('/Users/test/.treecore', {
     platform: 'darwin',
     pathModule: path.posix
   })
 
-  const windows = hermesManagedNodePathEntries('C:\\Users\\test\\AppData\\Local\\hermes', {
+  const windows = treecoreManagedNodePathEntries('C:\\Users\\test\\AppData\\Local\\hermes', {
     platform: 'win32',
     pathModule: path.win32
   })
 
   // install.sh uses node/bin; install.ps1 unpacks node.exe into node\ itself.
   // Both shapes are always emitted so migrated installs keep resolving.
-  assert.deepEqual(posix, ['/Users/test/.hermes/node/bin', '/Users/test/.hermes/node'])
+  assert.deepEqual(posix, ['/Users/test/.treecore/node/bin', '/Users/test/.treecore/node'])
   assert.deepEqual(windows, [
     'C:\\Users\\test\\AppData\\Local\\hermes\\node',
     'C:\\Users\\test\\AppData\\Local\\hermes\\node\\bin'
@@ -59,24 +59,24 @@ test('managed Node dirs lead with the platform-native layout but always offer bo
 })
 
 test('managed Node dirs are empty without a Hermes home', () => {
-  assert.deepEqual(hermesManagedNodePathEntries(undefined, { platform: 'darwin', pathModule: path.posix }), [])
-  assert.deepEqual(hermesManagedNodePathEntries('', { platform: 'win32', pathModule: path.win32 }), [])
+  assert.deepEqual(treecoreManagedNodePathEntries(undefined, { platform: 'darwin', pathModule: path.posix }), [])
+  assert.deepEqual(treecoreManagedNodePathEntries('', { platform: 'win32', pathModule: path.win32 }), [])
 })
 
 test('every managed Node dir outranks the inherited PATH on both platforms', () => {
   for (const [platform, pathModule, home, inherited, delimiter] of [
-    ['darwin', path.posix, '/Users/test/.hermes', '/usr/local/bin:/usr/bin', ':'],
+    ['darwin', path.posix, '/Users/test/.treecore', '/usr/local/bin:/usr/bin', ':'],
     ['win32', path.win32, 'C:\\hermes', 'C:\\Program Files\\nodejs;C:\\Windows\\System32', ';']
   ] as const) {
     const entries = buildDesktopBackendPath({
-      hermesHome: home,
+      treecoreHome: home,
       venvRoot: null,
       currentPath: inherited,
       platform,
       pathModule
     }).split(delimiter)
 
-    const managed = hermesManagedNodePathEntries(home, { platform, pathModule })
+    const managed = treecoreManagedNodePathEntries(home, { platform, pathModule })
     const firstInherited = Math.min(...inherited.split(delimiter).map(entry => entries.indexOf(entry)))
 
     for (const dir of managed) {
@@ -90,8 +90,8 @@ test('every managed Node dir outranks the inherited PATH on both platforms', () 
 
 test('desktop backend PATH preserves first occurrence and avoids duplicates', () => {
   const result = buildDesktopBackendPath({
-    hermesHome: '/Users/test/.hermes',
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    treecoreHome: '/Users/test/.treecore',
+    venvRoot: '/Users/test/.treecore/treecore-agent/venv',
     currentPath: '/opt/homebrew/bin:/usr/bin:/opt/homebrew/bin:/bin',
     platform: 'darwin',
     pathModule: path.posix
@@ -107,9 +107,9 @@ test('desktop backend PATH preserves first occurrence and avoids duplicates', ()
 
 test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () => {
   const env = buildDesktopBackendEnv({
-    hermesHome: '/Users/test/.hermes',
-    pythonPathEntries: ['/repo/hermes-agent'],
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    treecoreHome: '/Users/test/.treecore',
+    pythonPathEntries: ['/repo/treecore-agent'],
+    venvRoot: '/Users/test/.treecore/treecore-agent/venv',
     currentEnv: {
       PATH: '/usr/bin:/bin',
       PYTHONPATH: '/existing/pythonpath'
@@ -118,10 +118,10 @@ test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () =
     pathModule: path.posix
   })
 
-  assert.equal(env.PYTHONPATH, '/repo/hermes-agent:/existing/pythonpath')
+  assert.equal(env.PYTHONPATH, '/repo/treecore-agent:/existing/pythonpath')
   assert.ok(
     env.PATH.startsWith(
-      '/Users/test/.hermes/node/bin:/Users/test/.hermes/node:/Users/test/.hermes/hermes-agent/venv/bin:'
+      '/Users/test/.treecore/node/bin:/Users/test/.treecore/node:/Users/test/.treecore/treecore-agent/venv/bin:'
     )
   )
   assert.ok(env.PATH.includes('/opt/homebrew/bin'))
@@ -129,7 +129,7 @@ test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () =
 
 test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly', () => {
   const defaulted = buildDesktopBackendEnv({
-    hermesHome: '/Users/test/.hermes',
+    treecoreHome: '/Users/test/.treecore',
     currentEnv: { PATH: '/usr/bin' },
     platform: 'darwin',
     pathModule: path.posix
@@ -138,7 +138,7 @@ test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly
   assert.equal(defaulted.PYTHONUTF8, '1')
 
   const optedOut = buildDesktopBackendEnv({
-    hermesHome: '/Users/test/.hermes',
+    treecoreHome: '/Users/test/.treecore',
     currentEnv: { PATH: '/usr/bin', PYTHONUTF8: '0' },
     platform: 'darwin',
     pathModule: path.posix
@@ -147,23 +147,23 @@ test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly
   assert.equal(optedOut.PYTHONUTF8, '0')
 })
 
-test('normalizeHermesHomeRoot maps profile homes back to the global Hermes root', () => {
+test('normalizeTreecoreHomeRoot maps profile homes back to the global Hermes root', () => {
   assert.equal(
-    normalizeHermesHomeRoot('/Users/test/.hermes/profiles/oracle', { pathModule: path.posix }),
-    '/Users/test/.hermes'
+    normalizeTreecoreHomeRoot('/Users/test/.treecore/profiles/oracle', { pathModule: path.posix }),
+    '/Users/test/.treecore'
   )
   assert.equal(
-    normalizeHermesHomeRoot('C:\\Users\\test\\AppData\\Local\\hermes\\profiles\\oracle', { pathModule: path.win32 }),
+    normalizeTreecoreHomeRoot('C:\\Users\\test\\AppData\\Local\\hermes\\profiles\\oracle', { pathModule: path.win32 }),
     'C:\\Users\\test\\AppData\\Local\\hermes'
   )
-  assert.equal(normalizeHermesHomeRoot('/Users/test/.hermes', { pathModule: path.posix }), '/Users/test/.hermes')
+  assert.equal(normalizeTreecoreHomeRoot('/Users/test/.treecore', { pathModule: path.posix }), '/Users/test/.treecore')
 })
 
 test('Windows PATH casing and delimiter are preserved without POSIX sane entries', () => {
   const env = buildDesktopBackendEnv({
-    hermesHome: 'C:\\Users\\test\\AppData\\Local\\hermes',
-    pythonPathEntries: ['C:\\repo\\hermes-agent'],
-    venvRoot: 'C:\\Users\\test\\AppData\\Local\\hermes\\hermes-agent\\venv',
+    treecoreHome: 'C:\\Users\\test\\AppData\\Local\\hermes',
+    pythonPathEntries: ['C:\\repo\\treecore-agent'],
+    venvRoot: 'C:\\Users\\test\\AppData\\Local\\hermes\\treecore-agent\\venv',
     currentEnv: {
       Path: 'C:\\Windows\\System32;C:\\Windows',
       PYTHONPATH: 'C:\\existing\\pythonpath'

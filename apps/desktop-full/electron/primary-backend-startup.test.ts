@@ -6,7 +6,7 @@ import { createFirstRunSetupGate } from './first-run-setup-gate'
 import { FirstRunSetupResetError, runPrimaryBackendStartup } from './primary-backend-startup'
 
 const bootstrapBackend = {
-  activeRoot: '/tmp/hermes-home/hermes-agent',
+  activeRoot: '/tmp/hermes-home/treecore-agent',
   kind: 'bootstrap-needed',
   platform: 'linux'
 }

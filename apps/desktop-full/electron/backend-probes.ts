@@ -3,13 +3,13 @@
  *
  * Cheap "does this candidate backend actually work" checks used by
  * resolveHermesBackend (main.ts). The resolver walks a ladder of
- * candidates -- bootstrap marker, `hermes` on PATH, system Python with
- * hermes_cli installed -- and historically returned the first candidate
+ * candidates -- bootstrap marker, `treecore` on PATH, system Python with
+ * treecore_cli installed -- and historically returned the first candidate
  * whose binary existed on disk. That assumption breaks when a user has
  * a pre-installed Python 3.11-3.13 (so findSystemPython() returns a
- * path) but no hermes_cli in its site-packages: the resolver hands back
+ * path) but no treecore_cli in its site-packages: the resolver hands back
  * a backend the spawn step can't actually run, and the user gets a
- * dead-on-arrival "ModuleNotFoundError: No module named 'hermes_cli'"
+ * dead-on-arrival "ModuleNotFoundError: No module named 'treecore_cli'"
  * instead of the first-launch installer.
  *
  * These probes give the resolver a way to verify a candidate before
@@ -107,7 +107,7 @@ function execProbeSync(
       throw err
     }
 
-    // One cold-cache / AV miss should not force hermes-setup --update (#61764).
+    // One cold-cache / AV miss should not force treecore-setup --update (#61764).
     execFileSync(command, args, options)
   }
 }
@@ -119,21 +119,21 @@ function execProbeSync(
  *
  * @returns {string}
  */
-function hermesRuntimeImportProbe() {
-  return 'import yaml; import dotenv; import hermes_cli.config'
+function treecoreRuntimeImportProbe() {
+  return 'import yaml; import dotenv; import treecore_cli.config'
 }
 
 /**
  * Return true iff the Hermes runtime import probe exits 0.
  *
- * Used to gate the "fallback to system Python with hermes_cli installed"
+ * Used to gate the "fallback to system Python with treecore_cli installed"
  * rung of resolveHermesBackend. Without this, a system Python 3.11-3.13
  * registered in PEP 514 makes findSystemPython() succeed regardless of
- * whether hermes_cli has actually been pip-installed into its
+ * whether treecore_cli has actually been pip-installed into its
  * site-packages -- and the resolver returns a backend that immediately
  * dies on spawn.
  *
- * The probe intentionally imports hermes_cli.config, not just the top-level
+ * The probe intentionally imports treecore_cli.config, not just the top-level
  * package: a broken/empty Windows launcher venv can still see the source tree
  * through PYTHONPATH but lack PyYAML, then die on the first real CLI import.
  *
@@ -147,7 +147,7 @@ function canImportHermesCli(pythonPath: string, opts: { env?: Record<string, str
   }
 
   try {
-    execProbeSync(pythonPath, ['-c', hermesRuntimeImportProbe()], {
+    execProbeSync(pythonPath, ['-c', treecoreRuntimeImportProbe()], {
       env: { ...process.env, ...(opts.env || {}) },
       stdio: 'ignore',
       timeout: PROBE_TIMEOUT_MS,
@@ -167,14 +167,14 @@ function canImportTreecoreCli(pythonPath: string, opts: { env?: Record<string, s
 /**
  * Return true iff `<hermesCommand> --version` exits 0.
  *
- * Used to gate the "existing `hermes` on PATH" rung. Without this, a
+ * Used to gate the "existing `treecore` on PATH" rung. Without this, a
  * stale hermes.cmd shim left behind by an uninstalled pip install (or
- * a half-built venv whose `hermes` entry-point points at a deleted
+ * a half-built venv whose `treecore` entry-point points at a deleted
  * Python) survives findOnPath() and gets selected as the backend.
  *
  * We intentionally avoid invoking the command with the dashboard args
  * here -- `--version` is the cheapest "is this binary alive" smoke
- * test that every hermes_cli entry-point has supported since 0.1.
+ * test that every treecore_cli entry-point has supported since 0.1.
  *
  * @param {string} hermesCommand - Resolved absolute path to a hermes
  *   executable (or an interpreter+script wrapper).
@@ -226,7 +226,7 @@ export {
   canImportTreecoreCli,
   DEFAULT_PROBE_TIMEOUT_MS,
   execProbeSync,
-  hermesRuntimeImportProbe,
+  treecoreRuntimeImportProbe,
   PROBE_TIMEOUT_MS,
   resolveProbeTimeoutMs,
   shouldTrustHermesOverride,
