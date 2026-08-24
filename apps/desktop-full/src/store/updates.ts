@@ -690,15 +690,15 @@ export function applyBackendUpdate(): Promise<DesktopUpdateApplyResult> {
   return backendUpdateInFlight
 }
 
+export function isTerminalUpdateStage(stage: DesktopUpdateStage): boolean {
+  return stage === 'error' || stage === 'done' || stage === 'restart' || stage === 'manual' || stage === 'guiSkew'
+}
+
 function ingestProgress(payload: DesktopUpdateProgress): void {
   const current = $updateApply.get()
   const log = [...current.log, { stage: payload.stage, message: payload.message, at: payload.at }].slice(-50)
 
-  const terminal =
-    payload.stage === 'error' ||
-    payload.stage === 'restart' ||
-    payload.stage === 'manual' ||
-    payload.stage === 'guiSkew'
+  const terminal = isTerminalUpdateStage(payload.stage)
 
   $updateApply.set({
     applying: !terminal,

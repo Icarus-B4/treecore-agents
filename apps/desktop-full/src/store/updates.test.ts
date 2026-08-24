@@ -56,7 +56,8 @@ const {
   resetUpdateApplyState,
   startUpdatePoller,
   stopUpdatePoller,
-  $updateStatus
+  $updateStatus,
+  isTerminalUpdateStage
 } = await import('./updates')
 
 const { setConnection } = await import('./session')
@@ -122,6 +123,13 @@ describe('maybeNotifyUpdateAvailable', () => {
   it('does nothing when already up to date', () => {
     maybeNotifyUpdateAvailable(status({ behind: 0 }))
     expect(notifySpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('isTerminalUpdateStage', () => {
+  it('treats an already-current client check as a completed update flow', () => {
+    expect(isTerminalUpdateStage('done')).toBe(true)
+    expect(isTerminalUpdateStage('pull')).toBe(false)
   })
 })
 
