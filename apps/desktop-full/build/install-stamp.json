@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "commit": "062b8245a73f7aae508552f3a37670054f786139",
+  "commit": "a74148480ec40ecea58fc4f82d7ebaac74e87e37",
   "branch": "feature/rebrand-frontend",
-  "builtAt": "2026-08-24T08:41:46.184Z",
-  "dirty": true,
+  "builtAt": "2026-08-24T08:43:02.193Z",
+  "dirty": false,
   "source": "local"
 }
