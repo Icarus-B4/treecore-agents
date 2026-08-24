@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "commit": "3135d55b6f9d4f78636e06f39ac8dab356315ff3",
+  "commit": "52e11ee177389b56b56ad957abd77cb8bdd674c5",
   "branch": "feature/direct-windows-updater",
-  "builtAt": "2026-08-24T09:39:55.639Z",
+  "builtAt": "2026-08-24T09:44:48.841Z",
   "dirty": false,
   "source": "local"
 }
