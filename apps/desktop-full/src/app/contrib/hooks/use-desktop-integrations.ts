@@ -13,7 +13,8 @@ import {
   setRememberedSessionId
 } from '@/store/session'
 import { onSessionsChanged } from '@/store/session-sync'
-import { openUpdatesWindow, startUpdatePoller, stopUpdatePoller } from '@/store/updates'
+import { openUpdatesWindow, startUpdatePoller, stopUpdatePoller, $updateOverlayOpen, $updateStatus } from '@/store/updates'
+import { storedString } from '@/lib/storage'
 import { isSecondaryWindow } from '@/store/windows'
 import type { SessionInfo } from '@/types/hermes'
 
@@ -61,8 +62,23 @@ export function useDesktopIntegrations({
     startUpdatePoller()
     const unsubscribe = window.treecoreDesktop?.onOpenUpdatesRequested?.(() => openUpdatesWindow())
 
+    // Auto-surface the update dialog on startup when an update is available,
+    // mirroring Hermes's "update now / later" prompt. Opens once, and respects
+    // the same 24h snooze the ambient toast uses so a dismissed prompt stays
+    // dismissed for the cooldown window.
+    const updateUnsub = $updateStatus.subscribe(status => {
+      if (status && (status.behind ?? 0) > 0 && !$updateOverlayOpen.get()) {
+        const snoozeUntil = Number(storedString('hermes:update-toast-snooze-until') || 0)
+
+        if (!(Number.isFinite(snoozeUntil) && Date.now() < snoozeUntil)) {
+          $updateOverlayOpen.set(true)
+        }
+      }
+    })
+
     return () => {
       unsubscribe?.()
+      updateUnsub?.()
       stopUpdatePoller()
     }
   }, [])

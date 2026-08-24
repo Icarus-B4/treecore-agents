@@ -88,7 +88,7 @@ function collectSshConfigHosts(rootPath = '', deps: any = {}) {
   const seen = new Set()
   const visited = new Set()
 
-  const resolveIncludePath = token => {
+  const resolveIncludePath = (token, fromFile) => {
     if (token.startsWith('~/')) {
       return path.join(homeDir, token.slice(2))
     }
@@ -97,7 +97,12 @@ function collectSshConfigHosts(rootPath = '', deps: any = {}) {
       return token
     }
 
-    return path.join(sshDir, token)
+    // Relative includes resolve against the directory of the *current* config
+    // file (matching real ssh behavior), not the home dir. Fall back to sshDir
+    // only when no source file is known (top-level call).
+    const base = fromFile ? path.dirname(fromFile) : sshDir
+
+    return path.join(base, token)
   }
 
   const walk = (filePath, depth) => {
@@ -120,7 +125,7 @@ function collectSshConfigHosts(rootPath = '', deps: any = {}) {
     }
 
     for (const token of parseSshConfigIncludes(text)) {
-      const target = resolveIncludePath(token)
+      const target = resolveIncludePath(token, filePath)
       const expanded = deps.globSync ? deps.globSync(target) : [target]
 
       for (const p of expanded) {

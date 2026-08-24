@@ -64,7 +64,7 @@ function resolveUnpackedRelease(execPath, updateRoot, platform) {
     return null
   }
 
-  const releaseDir = path.join(updateRoot, 'apps', 'desktop', 'release')
+  const releaseDir = path.join(updateRoot, 'apps', 'desktop-full', 'release')
   const unpacked = path.join(releaseDir, unpackedDirName(platform))
   const normalizedExec = path.resolve(String(execPath))
   // execPath must be the unpacked dir itself or a descendant of it.

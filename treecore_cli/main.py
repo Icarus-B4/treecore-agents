@@ -9085,8 +9085,39 @@ def _resolve_update_branch(args) -> str:
     or whitespace-only values as the default" parsing so every consumer of
     ``--branch`` (check path, git-update path, ZIP-fallback path) agrees on
     the same answer.
+
+    Fork deviation: when no explicit --branch is given and the live checkout is
+    on a non-main branch (e.g. feature/desktop-full-dev), default to the
+    CURRENT branch instead of main — a fork's active work branch is the natural
+    update target, and `origin/main` often isn't fetched into the live clone.
     """
-    return (getattr(args, "branch", None) or "main").strip() or "main"
+    override = (getattr(args, "branch", None) or "").strip()
+
+    if override:
+        return override
+
+    try:
+        from . import repo_root as _repo_root_mod
+
+        repo_dir = getattr(_repo_root_mod, "REPO_ROOT", None) or _repo_root_mod.__file__ and os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(_repo_root_mod.__file__)))
+        )
+
+        if repo_dir and os.path.isdir(os.path.join(repo_dir, ".git")):
+            current = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=repo_dir,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            ).stdout.strip()
+
+            if current and current not in ("HEAD", "main"):
+                return current
+    except Exception:
+        pass
+
+    return "main"
 
 
 def _size_delta_label(saved_mb: float) -> str:

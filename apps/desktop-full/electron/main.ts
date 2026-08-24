@@ -11080,6 +11080,15 @@ function terminalShellEnv() {
   // which marks the agent *backend* and gates cron/gateway behavior.
   env.TREECORE_DESKTOP_TERMINAL = '1'
 
+  // node-pty 1.x defaults to ConPTY on Windows, whose helper process calls
+  // AttachConsole and crashes ("AttachConsole failed") when the parent Electron
+  // process has no console — which is the case for a GUI-subsystem .exe launched
+  // by double-click. Force the legacy WinPTY path, which needs no console and
+  // works headless, so the embedded terminal actually accepts input.
+  if (IS_WINDOWS) {
+    env.NODE_PTY_USE_CONPTY = '0'
+  }
+
   return env
 }
 

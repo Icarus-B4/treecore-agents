@@ -237,8 +237,8 @@ function downloadInstallScript(ref, destPath) {
   // NousResearch/treecore-agents, so first-launch setup never pulls the original.
   // APP_NAME lives in main.ts (not imported here to avoid a cross-module cycle),
   // so derive the fork flag from the same env source directly.
-  const isTreecoreApp = (process.env.TREECORE_DESKTOP_APP_NAME || 'Treecore Agents') === 'treecore'
-  const bootstrapRepo = isTreecoreApp ? 'NousResearch/treecore-agents' : 'Icarus-B4/treecore-agents'
+  const isTreecoreApp = (process.env.TREECORE_DESKTOP_APP_NAME || 'Treecore Agents') === 'Treecore Agents'
+  const bootstrapRepo = isTreecoreApp ? 'Icarus-B4/treecore-agents' : 'NousResearch/treecore-agents'
   const url = `https://raw.githubusercontent.com/${bootstrapRepo}/${ref}/scripts/${scriptName}`
 
   return new Promise((resolve, reject) => {
