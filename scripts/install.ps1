@@ -30,7 +30,7 @@ param(
     [switch]$ForceCommit,
     [string]$Tag = "",
     [string]$HermesHome = $(if ($env:TREECORE_HOME) { $env:TREECORE_HOME } else { "$env:LOCALAPPDATA\treecore" }),
-    [string]$InstallDir = $(if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore" } else { "$env:LOCALAPPDATA\treecore\" }),
+    [string]$InstallDir = $(if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore-agents" } else { "$env:LOCALAPPDATA\treecore\treecore-agents" }),
 
     # --- Stage protocol (additive; default invocation behaves as before) ----
     # See the "Stage protocol" section near the bottom of the file for the
@@ -335,14 +335,14 @@ if ($PSBoundParameters.ContainsKey('HermesHome')) {
     $HermesHome = ConvertTo-LongPath $HermesHome
 } else {
     $HermesHome = ConvertTo-LongPath $(
-        if ($env:TREECORE_HOME) { $env:TREECORE_HOME } else { "$env:LOCALAPPDATA\treecore_cli" }
+        if ($env:TREECORE_HOME) { $env:TREECORE_HOME } else { "$env:LOCALAPPDATA\treecore" }
     )
 }
 if ($PSBoundParameters.ContainsKey('InstallDir')) {
     $InstallDir = ConvertTo-LongPath $InstallDir
 } else {
     $InstallDir = ConvertTo-LongPath $(
-        if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore" } else { "$env:LOCALAPPDATA\treecore\treecore" }
+        if ($env:TREECORE_HOME) { "$env:TREECORE_HOME\treecore-agents" } else { "$env:LOCALAPPDATA\treecore\treecore-agents" }
     )
 }
 if ($script:NormalizedProfilePaths) {

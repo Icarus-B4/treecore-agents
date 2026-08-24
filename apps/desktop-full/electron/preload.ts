@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
-contextBridge.exposeInMainWorld('hermesDesktop', {
+contextBridge.exposeInMainWorld('treecoreDesktop', {
   getConnection: profile => ipcRenderer.invoke('treecore:connection', profile),
   revalidateConnection: () => ipcRenderer.invoke('treecore:connection:revalidate'),
   touchBackend: profile => ipcRenderer.invoke('treecore:backend:touch', profile),

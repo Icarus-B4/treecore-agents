@@ -88,13 +88,6 @@ function treecoreManagedNodePathEntries(
   return platform === 'win32' ? [root, bin] : [bin, root]
 }
 
-function treecoreManagedNodePathEntries(
-  treecoreHome,
-  opts?: any
-) {
-  return treecoreManagedNodePathEntries(treecoreHome, opts)
-}
-
 function buildDesktopBackendPath({
   treecoreHome,
   venvRoot,
@@ -123,10 +116,6 @@ function normalizeTreecoreHomeRoot(treecoreHome, { pathModule = pathModuleForPla
   }
 
   return resolved
-}
-
-function normalizeTreecoreHomeRoot(treecoreHome, opts?: any) {
-  return normalizeTreecoreHomeRoot(treecoreHome, opts)
 }
 
 function buildDesktopBackendEnv({
@@ -165,8 +154,6 @@ export {
   buildDesktopBackendEnv,
   buildDesktopBackendPath,
   delimiterForPlatform,
-  treecoreManagedNodePathEntries,
-  normalizeTreecoreHomeRoot,
   treecoreManagedNodePathEntries,
   normalizeTreecoreHomeRoot,
   pathEnvKey,

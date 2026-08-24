@@ -174,11 +174,9 @@ export interface ResolveVenvHermesCommandDeps {
   getVenvSitePackagesEntries: (venvRoot: string) => string[]
   buildDesktopBackendEnv: (opts: {
     treecoreHome: string
-    treecoreHome: string
     pythonPathEntries: string[]
     venvRoot: string
   }) => Record<string, string>
-  treecoreHome: string
   treecoreHome: string
   resolvePath: (...segments: string[]) => string
   dirname: (p: string) => string
@@ -283,7 +281,6 @@ export function resolveVenvTreecoreCommand(
     bootstrap: false,
     env: buildDesktopBackendEnv({
       treecoreHome,
-      treecoreHome: treecoreHome,
       pythonPathEntries: [...(directoryExists(root) ? [root] : []), ...getVenvSitePackagesEntries(venvRoot)],
       venvRoot
     }),

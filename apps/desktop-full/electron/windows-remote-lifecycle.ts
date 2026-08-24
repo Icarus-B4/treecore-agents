@@ -144,7 +144,7 @@ function validLock(lock, ownershipId) {
     lock.port >= 0 &&
     lock.port <= 65535 &&
     /^[0-9a-f]{32}$/.test(lock.tokenFingerprint || '') &&
-    typeof lock.treecorePath === 'string' &&
+    typeof lock.hermesPath === 'string' &&
     typeof lock.treecoreHome === 'string'
   )
 }

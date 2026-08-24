@@ -596,7 +596,7 @@ function resolveTreecoreHome() {
   }
 
   if (IS_WINDOWS && process.env.LOCALAPPDATA) {
-    const homeDir = APP_NAME === 'treecore' ? 'treecore' : 'treecore-agents'
+    const homeDir = APP_NAME === 'Treecore Agents' ? 'treecore' : 'treecore-agents'
     const localappdata = path.join(process.env.LOCALAPPDATA, homeDir)
     const legacy = path.join(app.getPath('home'), '.treecore')
 
@@ -623,9 +623,9 @@ function pathWithTreecoreManagedNode(...entries) {
 // ACTIVE_TREECORE_ROOT — the canonical mutable treecore install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
-// For the Treecore Agents fork this points at `treecore` (not
-// `treecore-agents`) so a co-installed treecore never shares the backend checkout.
-const FORK_BACKEND_DIR = APP_NAME === 'treecore' ? 'treecore-agents' : FORK_DATA_DIR
+// For the Treecore Agents fork this points at `treecore-agents` so a
+// co-installed Hermes treecore never shares the backend checkout.
+const FORK_BACKEND_DIR = APP_NAME === 'Treecore Agents' ? 'treecore-agents' : FORK_DATA_DIR
 const ACTIVE_TREECORE_ROOT = path.join(TREECORE_HOME, FORK_BACKEND_DIR)
 // VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_TREECORE_ROOT, 'venv')
@@ -1932,7 +1932,6 @@ function unwrapWindowsVenvTreecoreCommand(command, backendArgs) {
     getVenvPython,
     getVenvSitePackagesEntries,
     buildDesktopBackendEnv,
-    treecoreHome: TREECORE_HOME,
     treecoreHome: TREECORE_HOME,
     resolvePath: (...segments) => path.resolve(...segments),
     dirname: p => path.dirname(p),

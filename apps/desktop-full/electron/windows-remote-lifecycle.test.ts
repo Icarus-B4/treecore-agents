@@ -134,7 +134,7 @@ test('Windows SSH reuse requires the requested remote profile to match the lock'
   }
 
   const state = { alive: true, owned: true }
-  const runtime = { hermesPath: lock.treecorePath, treecoreHome: lock.treecoreHome }
+  const runtime = { hermesPath: lock.hermesPath, treecoreHome: lock.treecoreHome }
 
   assert.equal(reusableWindowsLock(lock, state, 'default', token, runtime), true)
   assert.equal(reusableWindowsLock(lock, state, 'desktop-work', token, runtime), false)

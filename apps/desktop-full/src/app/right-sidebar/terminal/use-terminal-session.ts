@@ -1023,6 +1023,23 @@ export function useTerminalSession({
     })
   }, [active, status])
 
+  // Direct focus when this tab becomes active. The resize observer above only
+  // fires on size changes — switching a tab from `invisible` to `visible`
+  // (visibility:hidden <-> visible) does NOT change the box size, so the
+  // observer never fires onActivate and the terminal stays unfocused, making
+  // keyboard input dead until the user clicks in. Focus eagerly on active.
+  useEffect(() => {
+    if (!active || status !== 'open') {
+      return
+    }
+
+    const term = termRef.current
+
+    if (term) {
+      term.focus()
+    }
+  }, [active, status])
+
   // Flush a queued command (e.g. a provider-disconnect) into the live session.
   // Only the active tab runs it (so a broadcast doesn't fan out to every shell);
   // the subscribe fires immediately, so a command set before this pane mounted
