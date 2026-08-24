@@ -1,134 +1,164 @@
-# treecore Boilerplate (Local Edition)
+# Treecore Agents
 
-A **standalone, Nous-free copy** of the treecore Desktop app. Same UI, same
-features, same layout — but it connects to a **local gateway** you run
-yourself instead of the Nous cloud backend.
+Treecore Agents is a local-first Windows desktop fork of Hermes Agent with its
+own product identity, runtime paths, installer, update channel, and Python
+backend.
 
-> ⚠️ This is NOT a replacement for treecore. It is a template: the full desktop
-> client (copied 1:1) plus a minimal local gateway that speaks the same
-> JSON-RPC protocol. The gateway is a starting point, not a complete backend.
+The source repository is private. Public Windows release artifacts are
+published separately through
+[`Icarus-B4/myGitappstore`](https://github.com/Icarus-B4/myGitappstore).
 
----
+## Repository layout
 
-## What's in here
-
-| Path | What |
+| Path | Purpose |
 |---|---|
-| `apps/desktop-full/` | The complete treecore Desktop app, copied 1:1 from `treecore-agents-main/apps/desktop`. Renders the real UI. |
-| `apps/gateway/` | Minimal local backend: JSON-RPC over WebSocket + REST. Bridges to any OpenAI-compatible LLM. |
-| `packages/ui/` | Extracted design-system (tokens + 73 primitives). |
-| `packages/shared/` | `@hermes/shared` protocol types (copied, no Nous dependency). |
-
----
-
-## Quick start
-
-### 1. Start the local gateway
-
-```bash
-cd apps/gateway
-npm install
-LLM_MOCK=1 node src/index.mjs
-# → listening on http://localhost:8789 (ws /api/ws)
-```
-
-The gateway URL is `http://localhost:8789`.
-
-**LLM modes:**
-- `LLM_MOCK=1` — replies with a stub, no real model needed (good for testing the UI).
-- Real LLM — point it at any OpenAI-compatible endpoint:
-  ```bash
-  LLM_BASE_URL=http://localhost:11434/v1 \   # e.g. local Ollama
-  LLM_API_KEY=sk-... \                        # or leave empty for Ollama
-  LLM_MODEL=llama3.1 \
-  node src/index.mjs
-  ```
-
-### 2. Start the desktop app
-
-> ⚠️ **Close the original treecore.exe first.** The app uses a single-instance
-> lock — if the original treecore is running, your copy will not open a window.
-
-```bash
-cd apps/desktop-full
-npm install
-npm run start
-```
-
-On first run, the setup flow asks for a gateway URL. Enter:
-
-```
-http://localhost:8789
-```
-
-That's it. The app connects to your local gateway and chat works.
-
----
+| `apps/desktop-full/` | Electron + React desktop application and Windows installer |
+| `treecore_cli/` | Treecore CLI, local dashboard, bootstrap, profiles, and configuration |
+| `agent/`, `tools/`, `gateway/` | Agent runtime, tool registry, session routing, and messaging gateway |
+| `packages/shared/` | Shared desktop/backend protocol types |
+| `scripts/install.ps1` | Windows bootstrap installer used by the desktop first-run flow |
 
 ## What works today
 
-- ✅ Full treecore Desktop UI (all 6 regions: title bar, sidebar, center, right pane, terminal, status bar)
-- ✅ Connects to local gateway over JSON-RPC (WebSocket)
-- ✅ Chat with streaming responses (mock or real LLM)
-- ✅ `/shell <cmd>` command runs a local shell command
-- ✅ Session list + sidebar (in-memory)
-- ✅ **Accent Picker plugin** — live OKLCH color picker in the status bar that
-  re-tints the whole app (Settings ▸ Plugins ▸ "Accent Picker", dev authoring
-  tool, not persisted across reloads)
-- ✅ **Render loop fixed** — the chat surface no longer crashes with
-  "Maximum update depth exceeded" (was caused by a `@assistant-ui/tap@0.9.14`
-  pin; reverted to `0.9.8` to match upstream)
+- ✅ Treecore-branded desktop, tray, taskbar, installer, and application icons
+- ✅ First-run bootstrap into Treecore-owned paths under
+  `%LOCALAPPDATA%\treecore`
+- ✅ Local Python backend started and monitored by the desktop
+- ✅ Persistent session transcripts and metadata in SQLite (`state.db`)
+- ✅ Multi-session and multi-profile session management in the desktop and
+  dashboard
+- ✅ Streaming chat with configurable model providers and provider fallbacks
+- ✅ Full agent tool registry, including terminal execution and file
+  read/write/search/patch tools
+- ✅ Embedded terminal with the Treecore virtual environment first on `PATH`
+- ✅ Treecore CLI commands such as `treecore doctor` and `treecore dashboard`
+- ✅ Local dashboard protected by a per-process session token; optional OAuth
+  gating is available for deliberately exposed/non-loopback deployments
+- ✅ Direct Windows update checks and downloads from the public artifact
+  repository without requiring an external terminal
+- ✅ `3CORE↬AGENT` wordmark with its original typography and a single-run decode
+  animation
 
-## Known fixes & notes
+The old claims that sessions were RAM-only, that the gateway had no
+multi-session/profile support, and that only `/shell` existed are no longer
+true for this repository.
 
-- **`@assistant-ui/tap` must stay at `0.9.8`.** The fork previously pinned
-  `0.9.14` (explicit dep + root `overrides`), but that version has a
-  `useSyncExternalStore` loop bug that crashes the chat surface on every
-  render ("Maximum update depth exceeded"). Upstream `hermes-agent` ships
-  `0.9.8`; keep it there. Do **not** bump it without verifying the loop stays
-  gone.
-- **Accent Picker** is a bundled plugin (`apps/desktop-full/src/plugins/accent/`)
-  ported from `hermes-agent` issue #91107. It wires `$accentOverride`
-  (`themes/accent-override.ts`) through `retintTheme` (`themes/retint.ts`) in
-  `themes/context.tsx` so the picker live-retints the app. Ships **off**
-  (`defaultEnabled: false`) — enable it in Settings ▸ Plugins.
+## Windows paths
 
-## What's NOT done (gateway is a starting point)
+| Data | Path |
+|---|---|
+| Treecore home/config | `%LOCALAPPDATA%\treecore` |
+| Managed backend checkout | `%LOCALAPPDATA%\treecore\treecore-agents` |
+| Managed Python environment | `%LOCALAPPDATA%\treecore\treecore-agents\venv` |
+| Desktop and backend logs | `%LOCALAPPDATA%\treecore\logs` |
+| Installed application | `%LOCALAPPDATA%\Programs\Treecore` |
 
-- ❌ **No persistence** — sessions live in RAM, gone on restart
-- ❌ **No multi-session management** in the gateway
-- ❌ **Only `/shell` tool** — no file read/write UI, no code-execution pane
-- ❌ **No auth / profiles** — gateway is open, local only
-- ❌ **No Nous features** — no cloud sync, no remote agents, no billing
+The embedded terminal starts PowerShell with `-NoLogo -NoProfile`. This keeps
+user PowerShell profiles and old global Hermes aliases out of the Treecore
+terminal. Its environment sets `TREECORE_DESKTOP_TERMINAL=1` and prepends the
+managed Treecore virtual environment to `PATH`.
 
-To make this a real local backend, extend `apps/gateway/src/index.mjs`:
-add more RPC methods (see `dispatch()`), persist sessions to disk, add tools.
+## Development
 
----
+Requirements:
 
-## Architecture
+- Windows 11
+- Node.js 22.22 or newer
+- npm
+- Python 3.11
+- Git
 
+Install dependencies at the repository root:
+
+```bash
+npm install
 ```
-┌─────────────────────┐         JSON-RPC 2.0 over WS          ┌─────────────────────┐
-│  treecore Desktop     │  ───────────────────────────────────▶ │  Local Gateway      │
-│  (apps/desktop-full)│  ◀─────────────────────────────────── │  (apps/gateway)     │
-│                     │   events: gateway.ready,              │                     │
-│  renderer + electron│   message.start/delta/complete,       │  → bridges to LLM   │
-└─────────────────────┘   session.info, tool.*               │  → runs /shell      │
-                                                                  └─────────────────────┘
+
+Build and start the desktop from `apps/desktop-full`:
+
+```bash
+npm run build
+npm run start
 ```
 
-The client speaks the `@hermes/shared` JSON-RPC protocol. The gateway
-implements the subset the client needs. Add methods as required.
+On Windows, a launch from a shell without a real console can make `node-pty`
+fail with `AttachConsole failed`. For manual runtime testing, start Electron
+through a real Windows console:
 
----
+```bat
+cmd /c start "" node_modules/.bin/electron.cmd .
+```
 
-## Original source
+Useful verification commands:
 
-Copied from `treecore-agents-main` (apps/desktop, packages/shared) — stripped of
-all Nous-specific backend connections. The gateway URL is user-configured,
-not hardcoded.
+```bash
+npm run typecheck
+npm test
+npm run build
+npm run builder -- --win nsis
+```
+
+The generated installer is written to:
+
+```text
+apps/desktop-full/release/Treecore-Agents-Setup-<version>-x64.exe
+```
+
+## Updates and releases
+
+The desktop uses `electron-updater` and reads release metadata from the public
+artifact repository:
+
+```text
+Icarus-B4/myGitappstore
+```
+
+The private source repository is not the client update feed. Installer names
+follow this format:
+
+```text
+Treecore-Agents-Setup-<version>-<arch>.exe
+```
+
+The Windows installer identity remains:
+
+```text
+com.webstarkorg.treecore.setup
+```
+
+Do not change that identity casually; it keeps Treecore separate from the
+original Hermes installation.
+
+## Important compatibility rule
+
+`@assistant-ui/tap` must remain pinned to `0.9.8` in both the dependency and
+root override. Version `0.9.14` caused a `useSyncExternalStore` render loop and
+`Maximum update depth exceeded` crashes in the chat surface. Do not upgrade it
+without a dedicated loop regression test.
+
+## Model-provider troubleshooting
+
+API-key providers require a valid key in the user's Treecore configuration; no
+developer keys are shipped in the application. A provider response such as
+HTTP `401 invalid_api_key` is a rejected credential, not a terminal or gateway
+failure. Reconfigure the provider with:
+
+```text
+treecore setup
+```
+
+or use the model/provider picker. Never commit provider keys or place them in a
+release artifact.
+
+## Current boundaries
+
+- Proprietary cloud sync, hosted remote-agent management, and billing services
+  are not provided by this local fork.
+- A non-loopback/public dashboard deployment must be explicitly configured with
+  its supported OAuth gate; the default local token model is intended for the
+  desktop on the same machine.
+- End-user model accounts, API keys, and infrastructure remain user-managed.
 
 ## License
 
-See individual package licenses from the upstream source.
+See the repository license and the individual upstream package licenses.

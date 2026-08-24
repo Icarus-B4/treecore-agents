@@ -10,6 +10,11 @@ out/
 *.tsbuildinfo
 .vite/
 
+# Web UI build output
+treecore_cli/web_dist/
+# Cross-process web UI build lock (always empty)
+.web_ui_build.lock
+
 # Native deps staging
 apps/desktop-full/dist/node_modules/
 
@@ -35,6 +40,10 @@ Thumbs.db
 
 # Test / coverage
 coverage/
+
+# Python cache
+__pycache__/
+*.py[cod]
 
 # Installer / Tauri build artifacts
 apps/installer/src-tauri/treecore-setup.manifest

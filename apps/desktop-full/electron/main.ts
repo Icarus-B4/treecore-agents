@@ -27,7 +27,8 @@ import {
   screen,
   session,
   shell,
-  systemPreferences
+  systemPreferences,
+  Tray
 } from 'electron'
 import nodePty from 'node-pty'
 import { autoUpdater } from 'electron-updater'
@@ -729,9 +730,16 @@ const APP_ICON_PATHS = [
   path.join(APP_ROOT, 'dist', 'apple-touch-icon.png'),
   path.join(unpackedPathFor(APP_ROOT), 'dist', 'apple-touch-icon.png')
 ]
+const TRAY_ICON_PATHS = [
+  ...(IS_WINDOWS ? [path.join(process.resourcesPath ?? '', 'icon.png')] : []),
+  path.join(APP_ROOT, 'assets', 'icon.png'),
+  path.join(APP_ROOT, 'public', 'apple-touch-icon.png'),
+  path.join(APP_ROOT, 'dist', 'apple-touch-icon.png')
+]
 
 let rendererTitleBarTheme = null
 const terminalSessions = new Map()
+let tray = null
 
 // Force the NATIVE window appearance (vibrancy material, titlebar, the
 // pre-first-paint window background) to follow the APP theme instead of the
@@ -1035,7 +1043,7 @@ app.setName(APP_NAME)
 // don't need this, so gate it on Windows. (Fixes: desktop approval/turn
 // notifications never firing on Windows.)
 if (IS_WINDOWS) {
-  app.setAppUserModelId(APP_NAME === 'treecore' ? 'com.nousresearch.treecore' : 'com.treecore.agents')
+  app.setAppUserModelId('com.webstarkorg.treecore')
 }
 
 // Seed the native About panel with the live treecore version. This is refreshed
@@ -5509,6 +5517,29 @@ function registerPowerResumeListeners() {
 
 function getAppIconPath() {
   return APP_ICON_PATHS.find(fileExists)
+}
+
+function getTrayIconPath() {
+  return TRAY_ICON_PATHS.find(fileExists)
+}
+
+function createTray() {
+  const iconPath = getTrayIconPath()
+
+  if (!iconPath || tray) {
+    return
+  }
+
+  tray = new Tray(nativeImage.createFromPath(iconPath))
+  tray.setToolTip('Treecore Agents')
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: 'Show Treecore Agents', click: () => focusWindow(mainWindow) },
+      { type: 'separator' },
+      { label: 'Quit', click: () => app.quit() }
+    ])
+  )
+  tray.on('click', () => focusWindow(mainWindow))
 }
 
 function sendOpenUpdatesRequested() {
@@ -11132,7 +11163,7 @@ function shellSpecFor(shellPath) {
   const name = path.basename(shellPath).toLowerCase()
 
   if (name.startsWith('pwsh') || name.startsWith('powershell')) {
-    return { args: ['-NoLogo'], command: shellPath, name }
+    return { args: ['-NoLogo', '-NoProfile'], command: shellPath, name }
   }
 
   if (name.startsWith('cmd')) {
@@ -11219,11 +11250,22 @@ function terminalShellEnv() {
   // which marks the agent *backend* and gates cron/gateway behavior.
   env.TREECORE_DESKTOP_TERMINAL = '1'
 
-  // node-pty 1.x defaults to ConPTY on Windows, whose helper process calls
-  // AttachConsole and crashes ("AttachConsole failed") when the parent Electron
-  // process has no console — which is the case for a GUI-subsystem .exe launched
-  // by double-click. Force the legacy WinPTY path, which needs no console and
-  // works headless, so the embedded terminal actually accepts input.
+  // The embedded terminal must resolve the fork's CLI before any globally
+  // installed Hermes CLI. Otherwise `treecore` is missing (or an old
+  // `hermes-dashboard` helper wins) even though the desktop bootstrap has
+  // already installed the Treecore venv.
+  const treecoreScripts = path.join(VENV_ROOT, IS_WINDOWS ? 'Scripts' : 'bin')
+  const inheritedPath = String(env.PATH || '')
+    .split(path.delimiter)
+    .filter(entry => entry && !/([\\/]hermes([\\/]|$)|hermes-agent)/i.test(entry))
+  env.PATH = [treecoreScripts, ...treecoreManagedNodePathEntries(TREECORE_HOME), ...inheritedPath]
+    .filter(Boolean)
+    .filter((entry, index, entries) => entries.indexOf(entry) === index)
+    .join(path.delimiter)
+
+  // node-pty's Windows ConPTY helper can fail with "AttachConsole failed"
+  // when the desktop app is launched without a console. The spawn call below
+  // explicitly selects the legacy WinPTY backend for local Windows sessions.
   if (IS_WINDOWS) {
     env.NODE_PTY_USE_CONPTY = '0'
   }
@@ -11562,7 +11604,14 @@ ipcMain.handle('treecore:terminal:start', async (event, payload = {}) => {
         buildInteractiveSshArgs(sshTarget.ssh, String(payload?.cwd || '').trim(), undefined, remoteCommand),
         { cols, cwd: app.getPath('home'), env: terminalShellEnv(), name: 'xterm-256color', rows }
       )
-    : nodePty.spawn(command, args, { cols, cwd, env: terminalShellEnv(), name: 'xterm-256color', rows })
+    : nodePty.spawn(command, args, {
+        cols,
+        cwd,
+        env: terminalShellEnv(),
+        name: 'xterm-256color',
+        rows,
+        ...(IS_WINDOWS ? { useConpty: false } : {})
+      })
 
   terminalSessions.set(id, {
     pty: ptyProcess,
@@ -11653,28 +11702,11 @@ ipcMain.handle('treecore:updates:branch:set', async (_event, name) => {
   return { branch }
 })
 
-// Resolve the canonical treecore version (the one `release.py` bumps in
-// treecore_cli/__init__.py + pyproject.toml) so the desktop About panel shows the
-// real treecore version instead of the Electron app's own package.json version,
-// which historically drifted (stuck at 0.0.2). Falls back to app.getVersion()
-// when the source tree can't be read (e.g. a packaged build without the repo).
+// The desktop update channel and the visible app version must describe the same
+// shipped artifact. Do not read the backend's Python version here: it can be
+// updated independently and was the reason the UI showed v0.20.0 on a 0.18.x
+// desktop installer.
 function resolveTreecoreVersion() {
-  try {
-    const root = resolveUpdateRoot()
-    const initPath = path.join(root, 'treecore_cli', '__init__.py')
-
-    if (fileExists(initPath)) {
-      const raw = fs.readFileSync(initPath, 'utf8')
-      const match = raw.match(/__version__\s*=\s*["']([^"']+)["']/)
-
-      if (match) {
-        return match[1]
-      }
-    }
-  } catch {
-    // Fall through to the Electron app version below.
-  }
-
   return app.getVersion()
 }
 
@@ -12086,6 +12118,7 @@ app.whenReady().then(() => {
   }
 
   createWindow()
+  createTray()
   setupClientAutoUpdater()
 
   // Win/Linux cold start: the launching treecore:// URL is in our own argv.
@@ -12215,6 +12248,8 @@ app.on('before-quit', event => {
   // pet can't keep the process alive or float over a quit app.
   closePetOverlay()
   wakeIndicatorController.close()
+  tray?.destroy()
+  tray = null
 
   // Same for the Quick Entry composer — and release its global accelerator so a
   // quitting treecore never keeps another app's chord hostage.

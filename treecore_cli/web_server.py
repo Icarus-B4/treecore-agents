@@ -5,7 +5,7 @@ Provides a FastAPI backend serving the Vite/React frontend and REST API
 endpoints for managing configuration, environment variables, and sessions.
 
 Usage:
-    python -m treecore_cli.main web          # Start on http://127.0.0.1:9119
+    python -m treecore_cli.main web          # Start on http://127.0.0.1:9120
     python -m treecore_cli.main web --port 8080
 """
 
@@ -512,10 +512,10 @@ def _is_accepted_host(host_header: str, bound_host: str) -> bool:
         return False
     # Strip port suffix. IPv6 addresses use bracket notation:
     #   [::1]         — no port
-    #   [::1]:9119    — with port
+    #   [::1]:9120    — with port
     # Plain hosts/v4:
-    #   localhost:9119
-    #   127.0.0.1:9119
+    #   localhost:9120
+    #   127.0.0.1:9120
     h = host_header.strip()
     if h.startswith("["):
         # IPv6 bracketed — port (if any) follows "]:"
@@ -16130,7 +16130,7 @@ def mount_spa(application: FastAPI):
     separate (unauthenticated) token-dispensing endpoint.
 
     When served behind a path-prefix reverse proxy (e.g.
-    ``mission-control.tilos.com/treecore/*`` -> local Caddy -> :9119), the
+    ``mission-control.tilos.com/treecore/*`` -> local Caddy -> :9120), the
     proxy injects ``X-Forwarded-Prefix: /treecore`` on every request. We
     rewrite the served ``index.html`` so absolute asset URLs (``/assets/...``)
     and the SPA's runtime ``__TREECORE_BASE_PATH__`` honour that prefix
@@ -16188,6 +16188,13 @@ def mount_spa(application: FastAPI):
                 f"window.__TREECORE_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
                 f'window.__TREECORE_BASE_PATH__="{prefix}";'
                 f"window.__TREECORE_AUTH_REQUIRED__={gated_js};"
+                # The dashboard frontend is synced from upstream and still
+                # reads the established __HERMES_* bootstrap globals. Keep
+                # both namespaces in lockstep; these names are internal API
+                # compatibility aliases, not user-visible branding.
+                f"window.__HERMES_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
+                f'window.__HERMES_BASE_PATH__="{prefix}";'
+                f"window.__HERMES_AUTH_REQUIRED__={gated_js};"
                 f"</script>"
             )
         else:
@@ -16196,6 +16203,10 @@ def mount_spa(application: FastAPI):
                 f"window.__TREECORE_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
                 f'window.__TREECORE_BASE_PATH__="{prefix}";'
                 f"window.__TREECORE_AUTH_REQUIRED__={gated_js};"
+                f'window.__HERMES_SESSION_TOKEN__="{_SESSION_TOKEN}";'
+                f"window.__HERMES_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
+                f'window.__HERMES_BASE_PATH__="{prefix}";'
+                f"window.__HERMES_AUTH_REQUIRED__={gated_js};"
                 f"</script>"
             )
         if prefix:
@@ -17426,6 +17437,13 @@ def _read_bound_port(server: "uvicorn.Server", fallback: int) -> int:
     return fallback
 
 
+def _treecore_ready_banner(headless: bool, host: str, port: int) -> str:
+    """Return the Treecore-branded startup banner for backend/dashboard mode."""
+    if headless:
+        return f"  Treecore backend listening on {host}:{port}"
+    return f"  Treecore Web UI → http://{host}:{port}"
+
+
 def _write_dashboard_ready_file(actual_port: int) -> None:
     """Optionally publish the dashboard port through an atomic ready file.
 
@@ -17510,7 +17528,7 @@ def _maybe_open_browser(
 
 def start_server(
     host: str = "127.0.0.1",
-    port: int = 9119,
+    port: int = 9120,
     open_browser: bool = True,
     allow_public: bool = False,
     initial_profile: str = "",
@@ -17722,12 +17740,9 @@ def start_server(
             # `dashboard` keeps the legacy one. The desktop matches either.
             ready_token = "TREECORE_BACKEND_READY" if headless else "TREECORE_DASHBOARD_READY"
             print(f"{ready_token} port={actual_port}", flush=True)
-            if headless:
-                # No SPA, and the JSON-RPC/WS endpoints are auth-gated — don't
-                # advertise a paste-and-connect URL, just announce the bind.
-                print(f"  Hermes backend listening on {host}:{actual_port}")
-            else:
-                print(f"  Hermes Web UI → http://{host}:{actual_port}")
+            # Headless mode has no SPA and does not advertise a connect URL;
+            # dashboard mode prints its local browser URL.
+            print(_treecore_ready_banner(headless, host, actual_port))
             _maybe_open_browser(host, actual_port, open_browser, initial_profile)
 
             # Collapse the peer-hangup teardown flood (#50005). When the Desktop

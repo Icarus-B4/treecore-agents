@@ -24,7 +24,7 @@ def _add_server_runtime_args(parser) -> None:
     browser-opening behavior and help framing differ.
     """
     parser.add_argument(
-        "--port", type=int, default=9119, help="Port (default 9119, 0 for auto-assign by OS)"
+        "--port", type=int, default=9120, help="Port (Treecore default 9120, 0 for auto-assign by OS)"
     )
     parser.add_argument(
         "--host", default="127.0.0.1", help="Host (default 127.0.0.1)"
@@ -75,12 +75,12 @@ def _add_server_runtime_args(parser) -> None:
     parser.add_argument(
         "--stop",
         action="store_true",
-        help="Stop all running Hermes web server processes and exit",
+        help="Stop all running Treecore web server processes and exit",
     )
     parser.add_argument(
         "--status",
         action="store_true",
-        help="List running Hermes web server processes and exit",
+        help="List running Treecore web server processes and exit",
     )
 
 
@@ -101,7 +101,7 @@ def build_dashboard_parser(
     dashboard_parser = subparsers.add_parser(
         "dashboard",
         help="Start the web UI dashboard",
-        description="Launch the Hermes Agent web dashboard for managing config, API keys, and sessions",
+        description="Launch the Treecore Agents web dashboard for managing config, API keys, and sessions",
     )
     _add_server_runtime_args(dashboard_parser)
     dashboard_parser.add_argument(
@@ -135,9 +135,9 @@ def build_dashboard_parser(
     # =========================================================================
     serve_parser = subparsers.add_parser(
         "serve",
-        help="Start the Hermes backend server (headless; powers the desktop app and remote backends)",
+        help="Start the Treecore backend server (headless; powers the desktop app and remote backends)",
         description=(
-            "Run the Hermes backend server — the JSON-RPC/WebSocket gateway the "
+            "Run the Treecore backend server — the JSON-RPC/WebSocket gateway the "
             "desktop app and remote clients connect to. Headless: it never opens "
             "a browser UI."
         ),

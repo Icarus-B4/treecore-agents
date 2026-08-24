@@ -1,6 +1,7 @@
 import { type CSSProperties, useState } from 'react'
 
 import { capitalize, normalize } from '@/lib/text'
+import { DecodeText } from '@/components/ui/decode-text'
 
 import introCopyJsonl from './intro-copy.jsonl?raw'
 
@@ -172,7 +173,7 @@ export function Intro({ personality, seed }: IntroProps) {
           style={{ '--fit-min': '2.75rem' } as CSSProperties}
         >
           <span>
-            <span>{WORDMARK}</span>
+            <DecodeText loop={false} text={WORDMARK} unstyled />
           </span>
           <span aria-hidden="true">{WORDMARK}</span>
         </p>

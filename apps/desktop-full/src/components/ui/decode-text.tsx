@@ -44,6 +44,8 @@ export interface DecodeTextProps extends Omit<ComponentProps<'span'>, 'prefix'> 
   loop?: boolean
   /** Blinking dither-cursor square after the text. */
   cursor?: boolean
+  /** Inherit all typography and layout from the caller. */
+  unstyled?: boolean
 }
 
 export function DecodeText({
@@ -53,6 +55,7 @@ export function DecodeText({
   loop = true,
   prefix = 0,
   text,
+  unstyled = false,
   ...props
 }: DecodeTextProps) {
   const staticPrefix = text.slice(0, prefix)
@@ -106,7 +109,8 @@ export function DecodeText({
   return (
     <span
       className={cn(
-        'inline-flex items-center font-mono text-[0.64rem] font-semibold uppercase tracking-[0.4em] tabular-nums',
+        !unstyled &&
+          'inline-flex items-center font-mono text-[0.64rem] font-semibold uppercase tracking-[0.4em] tabular-nums',
         className
       )}
       {...props}

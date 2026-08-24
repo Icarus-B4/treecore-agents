@@ -73,7 +73,7 @@ Examples:
     treecore debug share             Upload debug report for support
     treecore console                Open the safe Hermes command console
     treecore update                 Update to latest version
-    treecore dashboard              Start web UI dashboard (port 9119)
+    treecore dashboard              Start web UI dashboard (port 9120)
     treecore dashboard --stop       Stop running dashboard processes
     treecore dashboard --status     List running dashboard processes
 
