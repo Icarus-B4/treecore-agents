@@ -669,21 +669,13 @@ function spawnBash(scriptPath, args, { emit, stageName, abortSignal, treecoreHom
 // back to the commit baked into that app. All-zero fallback stamps are never
 // passed as -Commit/--commit — only the branch is used (#50823 / #50864 review).
 function resolveBootstrapBranch(branch) {
-  // Local rebrand work is intentionally not published under its local branch
-  // name. The fork branch containing the distributable Treecore bootstrap is
-  // feature/desktop-full-dev.
-  return branch === 'feature/rebrand-frontend' ? 'feature/desktop-full-dev' : branch
-}
-
-function isUnpublishedLocalBranch(branch) {
-  return branch === 'feature/rebrand-frontend'
+  return branch
 }
 
 function buildPinArgs(installStamp, { pinCommit = true } = {}) {
   const args = []
-  const branch = installStamp && installStamp.branch ? installStamp.branch : null
 
-  if (pinCommit && !isUnpublishedLocalBranch(branch) && installStamp && isPinnedCommit(installStamp.commit)) {
+  if (pinCommit && installStamp && isPinnedCommit(installStamp.commit)) {
     args.push('-Commit', installStamp.commit)
   }
 
@@ -701,7 +693,7 @@ function buildPosixPinArgs({ installStamp, activeRoot, treecoreHome, pinCommit =
     args.push('--branch', resolveBootstrapBranch(installStamp.branch))
   }
 
-  if (!isUnpublishedLocalBranch(installStamp && installStamp.branch) && pinCommit && installStamp && isPinnedCommit(installStamp.commit)) {
+  if (pinCommit && installStamp && isPinnedCommit(installStamp.commit)) {
     args.push('--commit', installStamp.commit)
   }
 
