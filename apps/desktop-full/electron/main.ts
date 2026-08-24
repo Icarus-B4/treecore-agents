@@ -30,6 +30,7 @@ import {
   systemPreferences
 } from 'electron'
 import nodePty from 'node-pty'
+import { autoUpdater } from 'electron-updater'
 
 import { classifyActiveRuntime } from './active-runtime-state'
 import { stopBackendChild as stopBackendChildImpl } from './backend-child'
@@ -2526,6 +2527,10 @@ async function resolveHealedBranch(updateRoot, branch) {
 }
 
 async function checkUpdates() {
+  if (isPackagedWindowsClientUpdate()) {
+    return checkPackagedClientUpdate()
+  }
+
   const updateRoot = resolveUpdateRoot()
   let { branch } = readDesktopUpdateConfig()
   const gitDir = path.join(updateRoot, '.git')
@@ -2659,6 +2664,137 @@ async function readCommitLog(cwd, branch) {
 
       return { sha, summary, author, at: Number.parseInt(at, 10) * 1000 }
     })
+}
+
+const CLIENT_UPDATE_REPO = {
+  owner: 'Icarus-B4',
+  repo: 'myGitappstore',
+  releaseType: 'release' as const
+}
+
+let clientUpdateInfo: { version?: string; releaseName?: string } | null = null
+let clientUpdateDownloaded = false
+let clientUpdateError: string | null = null
+let clientUpdateConfigured = false
+
+function isPackagedWindowsClientUpdate(): boolean {
+  return IS_PACKAGED && IS_WINDOWS
+}
+
+function emitClientUpdateProgress(payload: Record<string, unknown>) {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed()) {
+      window.webContents.send('treecore:updates:progress', payload)
+    }
+  }
+}
+
+function setupClientAutoUpdater() {
+  if (!isPackagedWindowsClientUpdate() || clientUpdateConfigured) {
+    return
+  }
+
+  clientUpdateConfigured = true
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.setFeedURL({ provider: 'github', ...CLIENT_UPDATE_REPO })
+  autoUpdater.on('checking-for-update', () => {
+    clientUpdateError = null
+    emitClientUpdateProgress({ stage: 'check', message: 'Checking for Treecore Agents updates.', percent: null })
+  })
+  autoUpdater.on('update-available', info => {
+    clientUpdateInfo = { version: info.version, releaseName: info.releaseName }
+    clientUpdateDownloaded = false
+    emitClientUpdateProgress({ stage: 'available', message: `Treecore Agents ${info.version} is available.`, percent: 0 })
+  })
+  autoUpdater.on('update-not-available', () => {
+    clientUpdateInfo = null
+    clientUpdateDownloaded = false
+    emitClientUpdateProgress({ stage: 'done', message: 'Treecore Agents is up to date.', percent: 100 })
+  })
+  autoUpdater.on('download-progress', progress => {
+    emitClientUpdateProgress({ stage: 'download', message: 'Downloading Treecore Agents update…', percent: progress.percent })
+  })
+  autoUpdater.on('update-downloaded', info => {
+    clientUpdateInfo = { version: info.version, releaseName: info.releaseName }
+    clientUpdateDownloaded = true
+    emitClientUpdateProgress({ stage: 'restart', message: 'Update downloaded. Restarting Treecore Agents…', percent: 100 })
+  })
+  autoUpdater.on('error', error => {
+    clientUpdateError = error instanceof Error ? error.message : String(error)
+    emitClientUpdateProgress({ stage: 'error', message: clientUpdateError, percent: null })
+  })
+}
+
+async function checkPackagedClientUpdate() {
+  setupClientAutoUpdater()
+
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    const info = result?.updateInfo
+
+    if (!info || info.version === app.getVersion()) {
+      return {
+        supported: true,
+        updateAvailable: false,
+        fetchedAt: Date.now()
+      }
+    }
+
+    clientUpdateInfo = { version: info.version, releaseName: info.releaseName }
+
+    return {
+      supported: true,
+      updateAvailable: true,
+      behind: 1,
+      currentVersion: app.getVersion(),
+      targetSha: `client:${info.version}`,
+      message: `Treecore Agents ${info.version} is available.`,
+      fetchedAt: Date.now()
+    }
+  } catch (error) {
+    clientUpdateError = error instanceof Error ? error.message : String(error)
+    return {
+      supported: true,
+      updateAvailable: false,
+      error: 'check-failed',
+      message: clientUpdateError,
+      fetchedAt: Date.now()
+    }
+  }
+}
+
+async function applyPackagedClientUpdate() {
+  setupClientAutoUpdater()
+
+  if (clientUpdateError) {
+    return { ok: false, error: 'apply-failed', message: clientUpdateError }
+  }
+
+  try {
+    if (!clientUpdateInfo) {
+      await checkPackagedClientUpdate()
+    }
+
+    if (!clientUpdateInfo) {
+      return { ok: false, error: 'no-update', message: 'No Treecore Agents update is available.' }
+    }
+
+    if (!clientUpdateDownloaded) {
+      emitClientUpdateProgress({ stage: 'download', message: 'Downloading Treecore Agents update…', percent: 0 })
+      await autoUpdater.downloadUpdate()
+    }
+
+    // Give the renderer one turn to display the final progress state before the
+    // updater replaces the installed NSIS application.
+    setTimeout(() => autoUpdater.quitAndInstall(false, true), 250)
+
+    return { ok: true, handedOff: true, guiUpdated: true, message: 'Treecore Agents is restarting with the new version.' }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    clientUpdateError = message
+    return { ok: false, error: 'apply-failed', message }
+  }
 }
 
 let updateInFlight = false
@@ -2904,6 +3040,10 @@ async function releaseBackendLock(updateRoot, tag) {
 // Detection (checkUpdates / commit changelog / "N behind") stays in the UI;
 // only this apply action changed.
 async function applyUpdates(opts = {}) {
+  if (isPackagedWindowsClientUpdate()) {
+    return applyPackagedClientUpdate()
+  }
+
   if (updateInFlight) {
     throw new Error('An update is already in progress.')
   }
@@ -11946,6 +12086,7 @@ app.whenReady().then(() => {
   }
 
   createWindow()
+  setupClientAutoUpdater()
 
   // Win/Linux cold start: the launching treecore:// URL is in our own argv.
   const _coldStartLink = _extractDeepLink(process.argv)
